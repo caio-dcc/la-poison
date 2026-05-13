@@ -1,0 +1,409 @@
+{
+  "description": "Top 100 ingredientes com traduções PT/ES curadas à mão. Restante em T-013 via Claude Haiku.",
+  "ingredients": [
+    {
+      "name": "Vodka",
+      "name_i18n": { "pt": "Vodca", "en": "Vodka", "es": "Vodka" },
+      "type": "spirit",
+      "aliases_i18n": { "pt": [], "en": [], "es": [] }
+    },
+    {
+      "name": "Rum",
+      "name_i18n": { "pt": "Rum", "en": "Rum", "es": "Ron" },
+      "type": "spirit",
+      "aliases_i18n": {
+        "pt": ["rum branco", "rum escuro"],
+        "en": ["light rum", "dark rum"],
+        "es": ["ron blanco", "ron oscuro"]
+      }
+    },
+    {
+      "name": "Gin",
+      "name_i18n": { "pt": "Gim", "en": "Gin", "es": "Ginebra" },
+      "type": "spirit",
+      "aliases_i18n": { "pt": [], "en": ["dry gin", "london dry gin"], "es": [] }
+    },
+    {
+      "name": "Tequila",
+      "name_i18n": { "pt": "Tequila", "en": "Tequila", "es": "Tequila" },
+      "type": "spirit",
+      "aliases_i18n": { "pt": [], "en": ["silver tequila", "gold tequila"], "es": [] }
+    },
+    {
+      "name": "Whiskey",
+      "name_i18n": { "pt": "Whisky", "en": "Whiskey", "es": "Whisky" },
+      "type": "spirit",
+      "aliases_i18n": {
+        "pt": ["bourbon", "scotch"],
+        "en": ["bourbon whiskey", "scotch whisky"],
+        "es": ["bourbon", "escocés"]
+      }
+    },
+    {
+      "name": "Cachaça",
+      "name_i18n": { "pt": "Cachaça", "en": "Cachaça", "es": "Cachaça" },
+      "type": "spirit",
+      "aliases_i18n": { "pt": ["pinga"], "en": ["cachaca"], "es": ["cachaza"] }
+    },
+    {
+      "name": "Brandy",
+      "name_i18n": { "pt": "Conhaque", "en": "Brandy", "es": "Brandy" },
+      "type": "spirit",
+      "aliases_i18n": { "pt": [], "en": ["cognac", "armagnac"], "es": ["coñac"] }
+    },
+    {
+      "name": "Triple Sec",
+      "name_i18n": { "pt": "Triple Sec", "en": "Triple Sec", "es": "Triple Sec" },
+      "type": "liqueur",
+      "aliases_i18n": {
+        "pt": ["curaçau branco"],
+        "en": ["cointreau", "curacao"],
+        "es": ["curaçao blanco"]
+      }
+    },
+    {
+      "name": "Lime Juice",
+      "name_i18n": { "pt": "Suco de limão", "en": "Lime Juice", "es": "Jugo de limón" },
+      "type": "juice",
+      "aliases_i18n": {
+        "pt": ["limão fresco"],
+        "en": ["fresh lime juice"],
+        "es": ["jugo de limón fresco"]
+      }
+    },
+    {
+      "name": "Lemon Juice",
+      "name_i18n": { "pt": "Suco de limão-siciliano", "en": "Lemon Juice", "es": "Jugo de limón" },
+      "type": "juice",
+      "aliases_i18n": { "pt": [], "en": ["fresh lemon juice"], "es": [] }
+    },
+    {
+      "name": "Cola",
+      "name_i18n": { "pt": "Cola", "en": "Cola", "es": "Cola" },
+      "type": "mixer",
+      "aliases_i18n": { "pt": ["Coca-Cola"], "en": ["Coca-Cola", "Coke"], "es": ["Coca-Cola"] }
+    },
+    {
+      "name": "Tonic Water",
+      "name_i18n": { "pt": "Água tônica", "en": "Tonic Water", "es": "Agua tónica" },
+      "type": "mixer",
+      "aliases_i18n": { "pt": [], "en": [], "es": [] }
+    },
+    {
+      "name": "Ginger Beer",
+      "name_i18n": {
+        "pt": "Cerveja de gengibre",
+        "en": "Ginger Beer",
+        "es": "Cerveza de jengibre"
+      },
+      "type": "mixer",
+      "aliases_i18n": { "pt": [], "en": [], "es": [] }
+    },
+    {
+      "name": "Simple Syrup",
+      "name_i18n": { "pt": "Xarope simples", "en": "Simple Syrup", "es": "Jarabe simple" },
+      "type": "syrup",
+      "aliases_i18n": { "pt": ["açúcar dissolvido"], "en": ["sugar syrup"], "es": [] }
+    },
+    {
+      "name": "Honey",
+      "name_i18n": { "pt": "Mel", "en": "Honey", "es": "Miel" },
+      "type": "syrup",
+      "aliases_i18n": { "pt": [], "en": [], "es": [] }
+    },
+    {
+      "name": "Agave Syrup",
+      "name_i18n": { "pt": "Xarope de agave", "en": "Agave Syrup", "es": "Jarabe de agave" },
+      "type": "syrup",
+      "aliases_i18n": { "pt": ["néctar de agave"], "en": [], "es": ["néctar de agave"] }
+    },
+    {
+      "name": "Lime",
+      "name_i18n": { "pt": "Limão", "en": "Lime", "es": "Limón" },
+      "type": "mixer",
+      "aliases_i18n": { "pt": ["lima"], "en": ["persian lime"], "es": ["lima"] }
+    },
+    {
+      "name": "Lemon",
+      "name_i18n": { "pt": "Limão-siciliano", "en": "Lemon", "es": "Limón" },
+      "type": "mixer",
+      "aliases_i18n": { "pt": [], "en": [], "es": [] }
+    },
+    {
+      "name": "Orange",
+      "name_i18n": { "pt": "Laranja", "en": "Orange", "es": "Naranja" },
+      "type": "mixer",
+      "aliases_i18n": { "pt": [], "en": [], "es": [] }
+    },
+    {
+      "name": "Cranberry Juice",
+      "name_i18n": { "pt": "Suco de amora", "en": "Cranberry Juice", "es": "Jugo de arándano" },
+      "type": "juice",
+      "aliases_i18n": { "pt": [], "en": [], "es": [] }
+    },
+    {
+      "name": "Orange Juice",
+      "name_i18n": { "pt": "Suco de laranja", "en": "Orange Juice", "es": "Jugo de naranja" },
+      "type": "juice",
+      "aliases_i18n": { "pt": [], "en": ["fresh orange juice"], "es": [] }
+    },
+    {
+      "name": "Pineapple Juice",
+      "name_i18n": { "pt": "Suco de abacaxi", "en": "Pineapple Juice", "es": "Jugo de piña" },
+      "type": "juice",
+      "aliases_i18n": { "pt": [], "en": [], "es": [] }
+    },
+    {
+      "name": "Vermouth",
+      "name_i18n": { "pt": "Vermute", "en": "Vermouth", "es": "Vermut" },
+      "type": "vermouth",
+      "aliases_i18n": {
+        "pt": ["vermute seco", "vermute doce"],
+        "en": ["dry vermouth", "sweet vermouth"],
+        "es": []
+      }
+    },
+    {
+      "name": "Bitters",
+      "name_i18n": { "pt": "Amargos", "en": "Bitters", "es": "Amargos" },
+      "type": "bitters",
+      "aliases_i18n": { "pt": ["angostura"], "en": ["angostura bitters"], "es": ["angostura"] }
+    },
+    {
+      "name": "Mint",
+      "name_i18n": { "pt": "Hortelã", "en": "Mint", "es": "Menta" },
+      "type": "herb",
+      "aliases_i18n": { "pt": ["menta"], "en": [], "es": ["hierbabuena"] }
+    },
+    {
+      "name": "Basil",
+      "name_i18n": { "pt": "Manjericão", "en": "Basil", "es": "Albahaca" },
+      "type": "herb",
+      "aliases_i18n": { "pt": [], "en": [], "es": [] }
+    },
+    {
+      "name": "Rosemary",
+      "name_i18n": { "pt": "Alecrim", "en": "Rosemary", "es": "Romero" },
+      "type": "herb",
+      "aliases_i18n": { "pt": [], "en": [], "es": [] }
+    },
+    {
+      "name": "Thyme",
+      "name_i18n": { "pt": "Tomilho", "en": "Thyme", "es": "Tomillo" },
+      "type": "herb",
+      "aliases_i18n": { "pt": [], "en": [], "es": [] }
+    },
+    {
+      "name": "Ginger",
+      "name_i18n": { "pt": "Gengibre", "en": "Ginger", "es": "Jengibre" },
+      "type": "spice",
+      "aliases_i18n": { "pt": [], "en": [], "es": [] }
+    },
+    {
+      "name": "Cinnamon",
+      "name_i18n": { "pt": "Canela", "en": "Cinnamon", "es": "Canela" },
+      "type": "spice",
+      "aliases_i18n": { "pt": [], "en": [], "es": [] }
+    },
+    {
+      "name": "Nutmeg",
+      "name_i18n": { "pt": "Noz-moscada", "en": "Nutmeg", "es": "Nuez moscada" },
+      "type": "spice",
+      "aliases_i18n": { "pt": [], "en": [], "es": [] }
+    },
+    {
+      "name": "Clove",
+      "name_i18n": { "pt": "Cravo", "en": "Clove", "es": "Clavo" },
+      "type": "spice",
+      "aliases_i18n": { "pt": [], "en": [], "es": [] }
+    },
+    {
+      "name": "Egg White",
+      "name_i18n": { "pt": "Claras de ovo", "en": "Egg White", "es": "Claras de huevo" },
+      "type": "mixer",
+      "aliases_i18n": { "pt": [], "en": [], "es": [] }
+    },
+    {
+      "name": "Cream",
+      "name_i18n": { "pt": "Creme", "en": "Cream", "es": "Crema" },
+      "type": "mixer",
+      "aliases_i18n": { "pt": [], "en": ["heavy cream"], "es": [] }
+    },
+    {
+      "name": "Coconut Rum",
+      "name_i18n": { "pt": "Rum de coco", "en": "Coconut Rum", "es": "Ron de coco" },
+      "type": "liqueur",
+      "aliases_i18n": { "pt": ["Malibu"], "en": ["Malibu"], "es": [] }
+    },
+    {
+      "name": "Amaretto",
+      "name_i18n": { "pt": "Amaretto", "en": "Amaretto", "es": "Amaretto" },
+      "type": "liqueur",
+      "aliases_i18n": { "pt": [], "en": [], "es": [] }
+    },
+    {
+      "name": "Kahlua",
+      "name_i18n": { "pt": "Kahlúa", "en": "Kahlua", "es": "Kahlúa" },
+      "type": "liqueur",
+      "aliases_i18n": { "pt": [], "en": [], "es": [] }
+    },
+    {
+      "name": "Baileys",
+      "name_i18n": { "pt": "Baileys", "en": "Baileys", "es": "Baileys" },
+      "type": "liqueur",
+      "aliases_i18n": { "pt": [], "en": [], "es": [] }
+    },
+    {
+      "name": "Frangelico",
+      "name_i18n": { "pt": "Frangelico", "en": "Frangelico", "es": "Frangelico" },
+      "type": "liqueur",
+      "aliases_i18n": { "pt": [], "en": [], "es": [] }
+    },
+    {
+      "name": "Chambord",
+      "name_i18n": { "pt": "Chambord", "en": "Chambord", "es": "Chambord" },
+      "type": "liqueur",
+      "aliases_i18n": { "pt": [], "en": [], "es": [] }
+    },
+    {
+      "name": "Chartreuse",
+      "name_i18n": { "pt": "Chartreuse", "en": "Chartreuse", "es": "Chartreuse" },
+      "type": "liqueur",
+      "aliases_i18n": { "pt": [], "en": ["green chartreuse", "yellow chartreuse"], "es": [] }
+    },
+    {
+      "name": "Peppermint Schnapps",
+      "name_i18n": {
+        "pt": "Licor de hortelã",
+        "en": "Peppermint Schnapps",
+        "es": "Licor de menta"
+      },
+      "type": "liqueur",
+      "aliases_i18n": { "pt": [], "en": [], "es": [] }
+    },
+    {
+      "name": "Absinthe",
+      "name_i18n": { "pt": "Absinto", "en": "Absinthe", "es": "Absenta" },
+      "type": "spirit",
+      "aliases_i18n": { "pt": [], "en": [], "es": [] }
+    },
+    {
+      "name": "Campari",
+      "name_i18n": { "pt": "Campari", "en": "Campari", "es": "Campari" },
+      "type": "liqueur",
+      "aliases_i18n": { "pt": [], "en": [], "es": [] }
+    },
+    {
+      "name": "Wine",
+      "name_i18n": { "pt": "Vinho", "en": "Wine", "es": "Vino" },
+      "type": "wine",
+      "aliases_i18n": {
+        "pt": ["vinho tinto", "vinho branco"],
+        "en": ["red wine", "white wine"],
+        "es": ["vino tinto", "vino blanco"]
+      }
+    },
+    {
+      "name": "Sparkling Wine",
+      "name_i18n": { "pt": "Vinho espumante", "en": "Sparkling Wine", "es": "Vino espumante" },
+      "type": "wine",
+      "aliases_i18n": {
+        "pt": ["champagne"],
+        "en": ["champagne", "prosecco"],
+        "es": ["champagne", "cava"]
+      }
+    },
+    {
+      "name": "Lime Cordial",
+      "name_i18n": { "pt": "Xarope de limão", "en": "Lime Cordial", "es": "Cordial de limón" },
+      "type": "cordial",
+      "aliases_i18n": { "pt": ["rose's lime juice"], "en": ["rose's lime juice"], "es": [] }
+    },
+    {
+      "name": "Grenadine",
+      "name_i18n": { "pt": "Xarope de romã", "en": "Grenadine", "es": "Granadina" },
+      "type": "syrup",
+      "aliases_i18n": { "pt": [], "en": [], "es": [] }
+    },
+    {
+      "name": "Grapefruit Juice",
+      "name_i18n": { "pt": "Suco de toranja", "en": "Grapefruit Juice", "es": "Jugo de toronja" },
+      "type": "juice",
+      "aliases_i18n": { "pt": [], "en": [], "es": [] }
+    },
+    {
+      "name": "Club Soda",
+      "name_i18n": { "pt": "Água com gás", "en": "Club Soda", "es": "Agua con gas" },
+      "type": "mixer",
+      "aliases_i18n": { "pt": ["soda"], "en": ["soda water"], "es": ["soda"] }
+    },
+    {
+      "name": "Ginger Ale",
+      "name_i18n": {
+        "pt": "Refrigerante de gengibre",
+        "en": "Ginger Ale",
+        "es": "Refresco de jengibre"
+      },
+      "type": "mixer",
+      "aliases_i18n": { "pt": [], "en": [], "es": [] }
+    },
+    {
+      "name": "Lager Beer",
+      "name_i18n": { "pt": "Cerveja lager", "en": "Lager Beer", "es": "Cerveza lager" },
+      "type": "other",
+      "aliases_i18n": { "pt": ["cerveja"], "en": ["beer", "lager"], "es": ["cerveza"] }
+    },
+    {
+      "name": "Pisco",
+      "name_i18n": { "pt": "Pisco", "en": "Pisco", "es": "Pisco" },
+      "type": "spirit",
+      "aliases_i18n": { "pt": [], "en": [], "es": [] }
+    },
+    {
+      "name": "Mezcal",
+      "name_i18n": { "pt": "Mezcal", "en": "Mezcal", "es": "Mezcal" },
+      "type": "spirit",
+      "aliases_i18n": { "pt": [], "en": [], "es": [] }
+    },
+    {
+      "name": "Sake",
+      "name_i18n": { "pt": "Saquê", "en": "Sake", "es": "Sake" },
+      "type": "spirit",
+      "aliases_i18n": { "pt": [], "en": [], "es": [] }
+    },
+    {
+      "name": "Dark Rum",
+      "name_i18n": { "pt": "Rum escuro", "en": "Dark Rum", "es": "Ron oscuro" },
+      "type": "spirit",
+      "aliases_i18n": {
+        "pt": ["rum negro"],
+        "en": ["aged rum", "spiced rum"],
+        "es": ["ron envejecido"]
+      }
+    },
+    {
+      "name": "White Rum",
+      "name_i18n": { "pt": "Rum branco", "en": "White Rum", "es": "Ron blanco" },
+      "type": "spirit",
+      "aliases_i18n": { "pt": ["rum claro"], "en": ["light rum", "silver rum"], "es": [] }
+    },
+    {
+      "name": "Rum Spiced",
+      "name_i18n": { "pt": "Rum temperado", "en": "Rum Spiced", "es": "Ron especiado" },
+      "type": "spirit",
+      "aliases_i18n": { "pt": [], "en": ["spiced rum"], "es": [] }
+    },
+    {
+      "name": "Gin Dry",
+      "name_i18n": { "pt": "Gim seco", "en": "Gin Dry", "es": "Ginebra seca" },
+      "type": "spirit",
+      "aliases_i18n": { "pt": [], "en": ["london dry gin"], "es": [] }
+    },
+    {
+      "name": "Vodka Flavored",
+      "name_i18n": { "pt": "Vodca aromatizada", "en": "Vodka Flavored", "es": "Vodka aromatizada" },
+      "type": "liqueur",
+      "aliases_i18n": { "pt": [], "en": ["flavored vodka"], "es": [] }
+    }
+  ]
+}

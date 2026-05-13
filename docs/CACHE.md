@@ -144,6 +144,36 @@
 
 ---
 
+## 2026-05-13 — Modelagem i18n de ingredientes e categorias
+
+**Contexto:** CocktailDB oferece dados em EN; precisamos PT/EN/ES com filtros, SEO e chatbot funcional em 3 idiomas. Ingredientes e categorias são reutilizados massivamente.
+
+**Decisão:**
+
+- **Cocktails (long-form content):** Colunas i18n na tabela (`name_pt`, `name_en`, `description_pt`, `description_en`, `history_pt`, etc.)
+- **Ingredients/Categories (reutilizado):** JSONB `name_i18n: {pt: "", en: "", es: ""}` com GIN index para queries rápidas
+- **Slugs:** Global único (`slug TEXT UNIQUE`) — não traduzido. URL `/drinks/caipirinha` em qualquer idioma (melhor SEO + compartilhamento)
+- **Traduções ingredientes:** Dicionário manual dos ~100 ingredientes top (PT/ES) curado à mão + Claude Haiku em batch pra restante na T-013
+- **Full-text search:** `tsvector` gerado por idioma (`search_doc_pt`, `search_doc_en`, `search_doc_es`) com GIN index
+- **Flavor/occasion tags:** `flavor_tags TEXT[]` + `occasion_tags TEXT[]` para filtros facetados
+- **ABV/dificuldade/tempo:** Colunas dedicadas (`abv_estimate FLOAT`, `difficulty INT`, `prep_time_minutes INT`)
+- **Medidas normalizadas:** `amount_ml DECIMAL` + `unit_original TEXT` (preserva "1 oz" original) + `measure_text TEXT` (display)
+- **UI:** Selector de idioma (bandeiras PT/EN/ES) em navbar de todas as rotas, persistido em localStorage, default = browser language ou PT
+
+**Alternativas consideradas:**
+
+- Tabela `translations` poliglota separada → mais normalizado, mas JOIN overhead. Rejeitado.
+- Colunas por idioma em tudo → explosion de colunas. Rejeitado.
+- Apenas EN + API externo pra tradução → latência inaceitável. Rejeitado.
+
+**Trade-offs aceitos:**
+
+- JSONB é leve overhead vs tabela separada, mas queries diretas e GIN index compensa
+- Dicionário manual é curadoria inicial, mas escalável via Haiku na T-013
+- Slug global: URL nunca muda (melhor SEO), conteúdo muda via idioma em localStorage
+
+---
+
 ## TEMPLATE PARA NOVAS DECISÕES
 
 ```markdown

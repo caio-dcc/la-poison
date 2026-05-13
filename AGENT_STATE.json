@@ -1,12 +1,12 @@
 {
   "version": "1.0",
-  "last_updated": "2026-05-13T03:20:00Z",
-  "last_agent": "claude-code",
+  "last_updated": "2026-05-13T15:36:00Z",
+  "last_agent": "antigravity",
   "current_task": null,
   "completed_tasks": [
     {
       "id": "T-001",
-      "title": "Inicializar projeto Next.js 14 com TypeScript strict, Tailwind, shadcn/ui, Prisma",
+      "title": "Inicializar projeto Next.js 14 com TypeScript strict, Tailwind, shadcn/ui",
       "completed_at": "2026-05-12T23:55:00Z",
       "agent": "claude-code",
       "commit_sha": "4962c8d"
@@ -20,11 +20,11 @@
     },
     {
       "id": "T-003",
-      "title": "Criar Prisma schema completo",
+      "title": "Criar schema PostgreSQL completo",
       "completed_at": "2026-05-13T00:15:00Z",
       "agent": "claude-code",
       "commit_sha": "4962c8d",
-      "notes": "All models created: User, Subscription, Bar, Cocktail, Ingredient, CocktailIngredient, InventoryItem, UserDrink, Comment, ChatbotUsage"
+      "notes": "All models created. Schema moved to supabase/migrations/001_initial_schema.sql"
     },
     {
       "id": "T-005",
@@ -38,24 +38,21 @@
       "title": "Setup Vitest (unit) + Playwright (e2e)",
       "completed_at": "2026-05-13T00:30:00Z",
       "agent": "claude-code",
-      "commit_sha": "4962c8d",
-      "notes": "Unit tests passing. Playwright configured. Example tests provided."
+      "commit_sha": "4962c8d"
     },
     {
       "id": "T-007",
       "title": "Setup CI no GitHub Actions",
       "completed_at": "2026-05-13T00:35:00Z",
       "agent": "claude-code",
-      "commit_sha": "4962c8d",
-      "notes": "CI pipeline configured: lint, type-check, test, build on push/PR. Includes e2e tests on PR."
+      "commit_sha": "4962c8d"
     },
     {
       "id": "T-004",
       "title": "Arquitetura: Remover Prisma, usar Supabase Edge Functions",
       "completed_at": "2026-05-13T03:15:00Z",
       "agent": "claude-code",
-      "commit_sha": "950beb2",
-      "notes": "Prisma v7 PostgreSQL connection issues resolved by pivoting to Edge Functions. SQL DDL schema provided in CLAUDE.md. Supabase REST API verified working. Architecture docs updated."
+      "commit_sha": "950beb2"
     },
     {
       "id": "T-008",
@@ -63,15 +60,14 @@
       "completed_at": "2026-05-13T03:45:00Z",
       "agent": "claude-code",
       "commit_sha": null,
-      "notes": "SQL DDL executed in Supabase SQL Editor. All 9 tables created: cocktails, ingredients, cocktail_ingredients, bars, inventory_items, subscriptions, user_drinks, comments, chatbot_usage. Indexes created for performance."
+      "notes": "SQL DDL now in supabase/migrations/001_initial_schema.sql. RLS policies in 002_rls_policies.sql."
     },
     {
       "id": "T-009",
       "title": "Setup Supabase Edge Functions boilerplate",
       "completed_at": "2026-05-13T03:50:00Z",
       "agent": "claude-code",
-      "commit_sha": null,
-      "notes": "Created supabase/functions/ with 8 Edge Functions: hello, cocktails-crud, ingredients-crud, bars-crud, chatbot-rate-limit, subscriptions-crud, chatbot-rag, chatbot-cache, moderation. All written in Deno/TypeScript. supabase.json config created."
+      "commit_sha": null
     }
   ],
   "tasks_queue": [
@@ -128,10 +124,10 @@
       "task_id": "T-001,T-002,T-003,T-005,T-006,T-007",
       "files_changed": [
         "package.json",
-        "prisma/schema.prisma",
         ".env.local",
-        "src/lib/auth.ts",
-        "src/lib/db.ts",
+        "src/utils/supabase/server.ts",
+        "src/utils/supabase/client.ts",
+        "src/utils/supabase/middleware.ts",
         "middleware.ts",
         ".prettierrc.json",
         ".eslintrc.json",
@@ -143,7 +139,28 @@
         "tests/e2e/homepage.spec.ts",
         ".github/workflows/ci.yml"
       ],
-      "notes": "Phase 0 setup complete. All linting, testing, and CI infrastructure configured. First commit made. Dev server running."
+      "notes": "Phase 0 setup complete."
+    },
+    {
+      "timestamp": "2026-05-13T15:36:00Z",
+      "agent": "antigravity",
+      "action": "security_and_token_audit",
+      "task_id": null,
+      "files_changed": [
+        "middleware.ts",
+        "src/utils/supabase/middleware.ts",
+        "next.config.ts",
+        "app/layout.tsx",
+        "package.json",
+        ".env",
+        ".env.local",
+        ".gitignore",
+        "CLAUDE.md",
+        "supabase/migrations/001_initial_schema.sql",
+        "supabase/migrations/002_rls_policies.sql",
+        "docs/RATE_LIMIT_SPEC.md"
+      ],
+      "notes": "Full audit: fixed auth middleware (was no-op), added security headers, fixed package.json deps, refactored CLAUDE.md (24KB->8KB), created RLS policies, deleted redundant SESSION_SUMMARY.md and broken src/lib/auth.ts"
     }
   ],
   "cache_keys": [
@@ -153,5 +170,5 @@
     "arch_ssg_strategy",
     "pricing_model"
   ],
-  "status": "Ready for next phase. Waiting for user to execute SQL DDL in Supabase SQL Editor (T-008 blocking T-009+)."
+  "status": "Security audit applied. Ready for Phase 1 (T-010+). Run npm install to sync dependencies."
 }
