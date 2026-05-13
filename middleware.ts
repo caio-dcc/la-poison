@@ -1,4 +1,4 @@
-import { createClient } from '@/src/utils/supabase/middleware'
+import { createClient } from '@/utils/supabase/middleware'
 import { type NextRequest, NextResponse } from 'next/server'
 
 // Routes that require authentication (real pathnames, not route groups)

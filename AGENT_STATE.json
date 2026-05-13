@@ -1,10 +1,10 @@
 {
   "version": "1.0",
-  "last_updated": "2026-05-13T21:35:00Z",
+  "last_updated": "2026-05-13T18:08:00Z",
   "last_agent": "claude-code",
   "current_task": {
-    "id": "T-021",
-    "title": "Criar página SSG /drinks/[slug] com Schema.org + OG image dinâmica",
+    "id": "T-022",
+    "title": "Criar página SSG /drinks/category/[slug] e /drinks/ingredient/[slug]",
     "status": "pending",
     "started_at": null
   },
@@ -121,23 +121,23 @@
       "agent": "claude-code",
       "commit_sha": "abaa4d9",
       "notes": "SEO helpers library complete. src/lib/seo/metadata.ts (generateSEOMetadata, OpenGraph, Twitter), src/lib/seo/jsonld.ts (Recipe, BreadcrumbList, Organization, Article schemas), src/lib/seo/images.ts (responsive images, CDN, srcset), src/lib/seo/types.ts (common types, limits). All strict TypeScript, ready for SSG pages."
+    },
+    {
+      "id": "T-021",
+      "title": "Criar página SSG /drinks/[slug] com Schema.org + OG image dinâmica",
+      "completed_at": "2026-05-13T18:08:00Z",
+      "agent": "claude-code",
+      "commit_sha": "PENDING",
+      "notes": "SSG drink detail page complete. app/drinks/[slug]/page.tsx with generateStaticParams, generateMetadata, Recipe + Breadcrumb JSON-LD schemas. Dynamic OG image via app/api/og/[slug]/route.tsx using @vercel/og. REST API queries for build-time slug fetching. TypeScript strict, builds successfully."
     }
   ],
   "tasks_queue": [
     {
-      "id": "T-021",
-      "title": "Criar página SSG /drinks/[slug] com Schema.org + OG image dinâmica",
+      "id": "T-022",
+      "title": "Criar página SSG /drinks/category/[slug] e /drinks/ingredient/[slug]",
       "priority": 1,
       "phase": "Fase 2 — SEO pages",
       "blockers": [],
-      "estimated_hours": 3
-    },
-    {
-      "id": "T-022",
-      "title": "Criar página SSG /drinks/category/[slug] e /drinks/ingredient/[slug]",
-      "priority": 2,
-      "phase": "Fase 2 — SEO pages",
-      "blockers": ["T-021"],
       "estimated_hours": 2
     }
   ],
@@ -188,6 +188,20 @@
         "src/lib/seo/index.ts"
       ],
       "notes": "T-020 complete. SEO metadata helpers library with strict TypeScript. Includes generateSEOMetadata, JSON-LD schemas, image optimization, and common types."
+    },
+    {
+      "timestamp": "2026-05-13T18:08:00Z",
+      "agent": "claude-code",
+      "action": "completed_task",
+      "task_id": "T-021",
+      "files_changed": [
+        "app/drinks/[slug]/page.tsx",
+        "app/api/og/[slug]/route.tsx",
+        "tsconfig.json",
+        "middleware.ts",
+        "AGENT_STATE.json"
+      ],
+      "notes": "T-021 complete. SSG drink detail page with Schema.org + dynamic OG image. app/drinks/[slug]/page.tsx uses REST API for build-time slug fetching. Dynamic OG image at /api/og/[slug]. Full TypeScript support, builds successfully with npm run build."
     }
   ],
   "cache_keys": [
@@ -197,5 +211,5 @@
     "arch_ssg_strategy",
     "pricing_model"
   ],
-  "status": "T-020 complete. SEO helpers library ready. Next: T-021 (SSG drink pages)."
+  "status": "T-021 complete. SSG drink detail pages ready. Next: T-022 (category/ingredient pages)."
 }
