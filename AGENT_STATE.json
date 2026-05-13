@@ -1,10 +1,10 @@
 {
   "version": "1.0",
-  "last_updated": "2026-05-13T22:45:00Z",
+  "last_updated": "2026-05-13T23:15:00Z",
   "last_agent": "claude-code",
   "current_task": {
-    "id": "T-023",
-    "title": "Criar página de listagem /drinks com filtros e busca",
+    "id": "T-024",
+    "title": "Implementar i18n (PT/EN/ES) em todas as rotas",
     "status": "pending",
     "started_at": null
   },
@@ -137,19 +137,40 @@
       "agent": "claude-code",
       "commit_sha": "d21833b",
       "notes": "Collection pages for browsing by category and ingredient. app/drinks/category/[slug]/page.tsx and app/drinks/ingredient/[slug]/page.tsx with SSG, generateStaticParams, dynamic OG images. generateCollectionSchema() added to lib/seo/jsonld.ts. Grid layout with hover effects. TypeScript strict, builds successfully."
+    },
+    {
+      "id": "T-023",
+      "title": "Criar página de listagem /drinks com filtros e busca",
+      "completed_at": "2026-05-13T23:15:00Z",
+      "agent": "claude-code",
+      "commit_sha": "af1f5b4",
+      "notes": "Dynamic ISR drinks listing page with real-time search and multi-filter system. app/drinks/page.tsx (ISR 1h revalidation) + src/components/drinks/DrinksSearch.tsx (client-side filtering). Supports category, difficulty, ABV range, prep time filters. Sorting by name, difficulty, ABV. REST API calls to avoid cookies() at build time. Collection + Breadcrumb schemas. Responsive 4-column grid."
     }
   ],
   "tasks_queue": [
     {
-      "id": "T-023",
-      "title": "Criar página de listagem /drinks com filtros e busca",
+      "id": "T-024",
+      "title": "Implementar i18n (PT/EN/ES) em todas as rotas",
       "priority": 1,
-      "phase": "Fase 2 — SEO pages",
+      "phase": "Fase 3 — i18n + SEO",
       "blockers": [],
-      "estimated_hours": 3
+      "estimated_hours": 8
     }
   ],
   "session_log": [
+    {
+      "timestamp": "2026-05-13T23:15:00Z",
+      "agent": "claude-code",
+      "action": "completed_task",
+      "task_id": "T-023",
+      "files_changed": [
+        "app/drinks/page.tsx",
+        "src/components/drinks/DrinksSearch.tsx",
+        "package.json",
+        "package-lock.json"
+      ],
+      "notes": "T-023 complete. ISR drinks listing with client-side search & filters. Installed lucide-react for icons. Build status: drinks page marked as ○ (ISR, 1h revalidate)."
+    },
     {
       "timestamp": "2026-05-13T22:45:00Z",
       "agent": "claude-code",
@@ -234,5 +255,5 @@
     "arch_ssg_strategy",
     "pricing_model"
   ],
-  "status": "T-022 complete. SSG category & ingredient pages ready. Next: T-023 (drinks listing with filters)."
+  "status": "T-023 complete. Drinks listing page with filters/search ready. Next: T-024 (i18n implementation)."
 }
