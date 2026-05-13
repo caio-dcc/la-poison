@@ -1,10 +1,10 @@
 {
   "version": "1.0",
-  "last_updated": "2026-05-13T21:20:00Z",
+  "last_updated": "2026-05-13T21:35:00Z",
   "last_agent": "claude-code",
   "current_task": {
-    "id": "T-020",
-    "title": "Criar src/lib/seo/metadata.ts com helpers tipados",
+    "id": "T-021",
+    "title": "Criar página SSG /drinks/[slug] com Schema.org + OG image dinâmica",
     "status": "pending",
     "started_at": null
   },
@@ -113,24 +113,32 @@
       "agent": "claude-code",
       "commit_sha": "caa0560",
       "notes": "Embeddings pipeline complete. generate-embeddings.js/ts creates 384-dim vectors for all 425 cocktails using Xenova/all-MiniLM-L6-v2. PostgreSQL migration (003) adds pgvector + HNSW index. Edge Functions: embeddings-upsert (batch upload) + semantic-search (RAG queries). Output: cocktails-embedded.json."
+    },
+    {
+      "id": "T-020",
+      "title": "Criar src/lib/seo/metadata.ts com helpers tipados",
+      "completed_at": "2026-05-13T21:35:00Z",
+      "agent": "claude-code",
+      "commit_sha": "abaa4d9",
+      "notes": "SEO helpers library complete. src/lib/seo/metadata.ts (generateSEOMetadata, OpenGraph, Twitter), src/lib/seo/jsonld.ts (Recipe, BreadcrumbList, Organization, Article schemas), src/lib/seo/images.ts (responsive images, CDN, srcset), src/lib/seo/types.ts (common types, limits). All strict TypeScript, ready for SSG pages."
     }
   ],
   "tasks_queue": [
     {
-      "id": "T-020",
-      "title": "Criar src/lib/seo/metadata.ts com helpers tipados",
-      "priority": 1,
-      "phase": "Fase 2 — SEO core",
-      "blockers": [],
-      "estimated_hours": 1
-    },
-    {
       "id": "T-021",
       "title": "Criar página SSG /drinks/[slug] com Schema.org + OG image dinâmica",
+      "priority": 1,
+      "phase": "Fase 2 — SEO pages",
+      "blockers": [],
+      "estimated_hours": 3
+    },
+    {
+      "id": "T-022",
+      "title": "Criar página SSG /drinks/category/[slug] e /drinks/ingredient/[slug]",
       "priority": 2,
       "phase": "Fase 2 — SEO pages",
-      "blockers": ["T-020"],
-      "estimated_hours": 3
+      "blockers": ["T-021"],
+      "estimated_hours": 2
     }
   ],
   "session_log": [
@@ -166,6 +174,20 @@
         "supabase/functions/semantic-search/index.ts"
       ],
       "notes": "T-014 complete. Embeddings generation (Xenova) + pgvector storage + Edge Functions for RAG. 425 cocktails embedded in 384 dims."
+    },
+    {
+      "timestamp": "2026-05-13T21:35:00Z",
+      "agent": "claude-code",
+      "action": "completed_task",
+      "task_id": "T-020",
+      "files_changed": [
+        "src/lib/seo/metadata.ts",
+        "src/lib/seo/jsonld.ts",
+        "src/lib/seo/images.ts",
+        "src/lib/seo/types.ts",
+        "src/lib/seo/index.ts"
+      ],
+      "notes": "T-020 complete. SEO metadata helpers library with strict TypeScript. Includes generateSEOMetadata, JSON-LD schemas, image optimization, and common types."
     }
   ],
   "cache_keys": [
@@ -175,5 +197,5 @@
     "arch_ssg_strategy",
     "pricing_model"
   ],
-  "status": "T-014 complete. Embeddings pipeline (Xenova + pgvector) ready. Next: T-020 (SEO metadata helpers)."
+  "status": "T-020 complete. SEO helpers library ready. Next: T-021 (SSG drink pages)."
 }
