@@ -3,8 +3,8 @@
   "last_updated": "2026-05-13T23:15:00Z",
   "last_agent": "claude-code",
   "current_task": {
-    "id": "T-026",
-    "title": "Implementar robots.txt (app/robots.ts)",
+    "id": "T-027",
+    "title": "Implementar OG Image Generation (app/api/og/[slug]/route.tsx)",
     "status": "pending",
     "started_at": null
   },
@@ -161,19 +161,35 @@
       "agent": "claude-code",
       "commit_sha": "02a2eb2",
       "notes": "app/sitemap.ts exports MetadataRoute.Sitemap with all public URLs: home, /drinks listing, 425 cocktails, categories, ingredients, static pages (/about, /pricing, /community). Fetches data from Supabase REST API in parallel. lastMod from database updated_at, changeFreq: daily for /drinks, weekly for recipes, monthly for static. Build succeeds, sitemap.xml route recognized."
+    },
+    {
+      "id": "T-026",
+      "title": "Implementar robots.txt (app/robots.ts)",
+      "completed_at": "2026-05-14T00:12:00Z",
+      "agent": "claude-code",
+      "commit_sha": "03ee0d8",
+      "notes": "app/robots.ts exports MetadataRoute.Robots. Allow: /, Disallow: /api/, /(app)/, /conta, /chatbot. Sitemap pointer to /sitemap.xml. Build succeeds, robots.txt route prerendered."
     }
   ],
   "tasks_queue": [
     {
-      "id": "T-026",
-      "title": "Implementar robots.txt (app/robots.ts)",
+      "id": "T-027",
+      "title": "Implementar OG Image Generation (app/api/og/[slug]/route.tsx)",
       "priority": 1,
       "phase": "Fase 3 — SEO Core",
       "blockers": [],
-      "estimated_hours": 0.5
+      "estimated_hours": 1.5
     }
   ],
   "session_log": [
+    {
+      "timestamp": "2026-05-14T00:12:00Z",
+      "agent": "claude-code",
+      "action": "completed_task",
+      "task_id": "T-026",
+      "files_changed": ["app/robots.ts"],
+      "notes": "T-026 complete. robots.txt configuration with Allow: /, Disallow: /api/, /(app)/, /conta, /chatbot. Sitemap pointer to /sitemap.xml. Build successful, robots.txt route prerendered. Commit: 03ee0d8"
+    },
     {
       "timestamp": "2026-05-14T00:05:00Z",
       "agent": "claude-code",
@@ -297,5 +313,5 @@
     "arch_ssg_strategy",
     "pricing_model"
   ],
-  "status": "T-025 complete. Dynamic sitemap.xml generation active. Next: T-026 (robots.txt)."
+  "status": "T-026 complete. robots.txt configured. Next: T-027 (OG Image Generation)."
 }
