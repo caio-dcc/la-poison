@@ -45,6 +45,22 @@ export const dictionaries = {
     cocktailRecipesDesc:
       'Explore 425+ receitas de coquetéis com ingredientes, instruções e avaliações. Filtre por categoria, dificuldade e muito mais.',
     cocktailsWith: 'Coquetéis com',
+
+    // Auth
+    login: 'Login',
+    signup: 'Cadastro',
+    email: 'Email',
+    password: 'Senha',
+    confirmPassword: 'Confirmar Senha',
+    loginWithGoogle: 'Entrar com Google',
+    signupWithGoogle: 'Cadastrar com Google',
+    forgotPassword: 'Esqueceu a senha?',
+    loginError: 'Email ou senha inválidos',
+    signupError: 'Erro ao criar conta',
+    checkEmail: 'Verifique seu email para confirmar sua conta',
+    alreadyHaveAccount: 'Já tem uma conta?',
+    dontHaveAccount: 'Não tem uma conta?',
+    or: 'ou',
   },
 
   en: {
@@ -86,6 +102,22 @@ export const dictionaries = {
     cocktailRecipesDesc:
       'Browse 425+ cocktail recipes with ingredients, instructions, and ratings. Filter by category, difficulty, and more.',
     cocktailsWith: 'Cocktails with',
+
+    // Auth
+    login: 'Login',
+    signup: 'Sign Up',
+    email: 'Email',
+    password: 'Password',
+    confirmPassword: 'Confirm Password',
+    loginWithGoogle: 'Login with Google',
+    signupWithGoogle: 'Sign up with Google',
+    forgotPassword: 'Forgot password?',
+    loginError: 'Invalid email or password',
+    signupError: 'Error creating account',
+    checkEmail: 'Check your email to confirm your account',
+    alreadyHaveAccount: 'Already have an account?',
+    dontHaveAccount: "Don't have an account?",
+    or: 'or',
   },
 
   es: {
@@ -127,6 +159,22 @@ export const dictionaries = {
     cocktailRecipesDesc:
       'Explora 425+ recetas de cócteles con ingredientes, instrucciones y calificaciones. Filtra por categoría, dificultad y más.',
     cocktailsWith: 'Cócteles con',
+
+    // Auth
+    login: 'Iniciar Sesión',
+    signup: 'Registrarse',
+    email: 'Correo Electrónico',
+    password: 'Contraseña',
+    confirmPassword: 'Confirmar Contraseña',
+    loginWithGoogle: 'Iniciar Sesión con Google',
+    signupWithGoogle: 'Registrarse con Google',
+    forgotPassword: '¿Olvidó su contraseña?',
+    loginError: 'Correo electrónico o contraseña inválidos',
+    signupError: 'Error al crear cuenta',
+    checkEmail: 'Verifique su correo electrónico para confirmar su cuenta',
+    alreadyHaveAccount: '¿Ya tiene una cuenta?',
+    dontHaveAccount: '¿No tiene una cuenta?',
+    or: 'o',
   },
 }
 

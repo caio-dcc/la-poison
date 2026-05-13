@@ -33,16 +33,16 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       throw ingredientsError
     }
 
-    interface CocktailIngredientRow {
-      ingredient_id: string
-      measure_text: string
-      amount_ml?: number
-      ingredients?: { id: string; name: string; type: string }
-    }
-
     const result: CocktailWithIngredients = {
       ...cocktail,
-      ingredients: ((ingredients || []) as CocktailIngredientRow[]).map(ing => ({
+      ingredients: (
+        (ingredients as unknown as Array<{
+          ingredient_id: string
+          measure_text: string
+          amount_ml?: number
+          ingredients?: { id: string; name: string; type: string }
+        }>) || []
+      ).map(ing => ({
         ingredient_id: ing.ingredient_id,
         name: ing.ingredients?.name || '',
         type: ing.ingredients?.type || '',
