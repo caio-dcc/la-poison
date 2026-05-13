@@ -1,8 +1,8 @@
 {
   "version": "1.0",
-  "last_updated": "2026-05-13T02:30:00Z",
+  "last_updated": "2026-05-13T03:20:00Z",
   "last_agent": "claude-code",
-  "current_task": { "id": "T-004", "status": "blocked", "started_at": "2026-05-13T02:15:00Z" },
+  "current_task": null,
   "completed_tasks": [
     {
       "id": "T-001",
@@ -48,17 +48,34 @@
       "agent": "claude-code",
       "commit_sha": "4962c8d",
       "notes": "CI pipeline configured: lint, type-check, test, build on push/PR. Includes e2e tests on PR."
+    },
+    {
+      "id": "T-004",
+      "title": "Arquitetura: Remover Prisma, usar Supabase Edge Functions",
+      "completed_at": "2026-05-13T03:15:00Z",
+      "agent": "claude-code",
+      "commit_sha": "950beb2",
+      "notes": "Prisma v7 PostgreSQL connection issues resolved by pivoting to Edge Functions. SQL DDL schema provided in CLAUDE.md. Supabase REST API verified working. Architecture docs updated."
     }
   ],
   "tasks_queue": [
     {
-      "id": "T-004",
-      "title": "Rodar prisma migrate dev --name init",
+      "id": "T-008",
+      "title": "Criar schema PostgreSQL via Supabase SQL Editor",
       "priority": 1,
       "phase": "Fase 0 — Setup",
-      "blockers": ["T-002"],
+      "blockers": ["T-004"],
       "estimated_hours": 0.5,
-      "notes": "Blocked: requires DATABASE_URL from Supabase setup"
+      "notes": "Execute DDL from CLAUDE.md § MODELAGEM DE DADOS in Supabase dashboard SQL Editor"
+    },
+    {
+      "id": "T-009",
+      "title": "Setup Supabase Edge Functions boilerplate",
+      "priority": 2,
+      "phase": "Fase 0 — Setup",
+      "blockers": ["T-008"],
+      "estimated_hours": 1,
+      "notes": "Create supabase/functions/ directory structure with Deno runtime examples"
     },
     {
       "id": "T-010",
@@ -138,5 +155,5 @@
     "arch_ssg_strategy",
     "pricing_model"
   ],
-  "blocked_reason": "T-004 blocked: Supabase REST API verified reachable (✅). PostgreSQL direct connection failing (P1001). Issue: PostgreSQL port 5432 not accessible from your network. Workaround: Use Supabase client for schema creation or switch to using Supabase Data API with Prisma."
+  "status": "Ready for next phase. Waiting for user to execute SQL DDL in Supabase SQL Editor (T-008 blocking T-009+)."
 }
