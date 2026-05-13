@@ -1,8 +1,13 @@
 {
   "version": "1.0",
-  "last_updated": "2026-05-13T15:36:00Z",
-  "last_agent": "antigravity",
-  "current_task": null,
+  "last_updated": "2026-05-13T19:10:00Z",
+  "last_agent": "claude-code",
+  "current_task": {
+    "id": "T-011",
+    "title": "Implementar upload-images-r2.ts — baixa thumb, converte para WebP, faz upload R2",
+    "status": "pending",
+    "started_at": "2026-05-13T19:15:00Z"
+  },
   "completed_tasks": [
     {
       "id": "T-001",
@@ -68,6 +73,14 @@
       "completed_at": "2026-05-13T03:50:00Z",
       "agent": "claude-code",
       "commit_sha": null
+    },
+    {
+      "id": "T-010",
+      "title": "Implementar ingest-cocktaildb.ts — itera todos os drinks do CocktailDB",
+      "completed_at": "2026-05-13T19:10:00Z",
+      "agent": "claude-code",
+      "commit_sha": null,
+      "notes": "Ingested 425 unique drinks from CocktailDB API. Output: scripts/data/raw/cocktails.json. Next: seed into DB via T-012 after T-011 (image upload)."
     }
   ],
   "tasks_queue": [
@@ -170,5 +183,5 @@
     "arch_ssg_strategy",
     "pricing_model"
   ],
-  "status": "Security audit applied. Ready for Phase 1 (T-010+). Run npm install to sync dependencies."
+  "status": "T-010 complete: 425 unique cocktails ingested. Ready for T-011 (R2 image upload) and T-012 (database seed)."
 }
