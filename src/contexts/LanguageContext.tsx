@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useState, ReactNode, useCallback, useRef, useEffect } from 'react'
+import { createContext, useState, ReactNode, useCallback } from 'react'
 
 export type Language = 'pt' | 'en' | 'es'
 
@@ -22,17 +22,7 @@ function getInitialLanguage(): Language {
 }
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const initialRef = useRef<Language | null>(null)
-  const [language, setLanguageState] = useState<Language>('pt')
-  const [isMounted, setIsMounted] = useState(false)
-
-  useEffect(() => {
-    if (initialRef.current === null) {
-      initialRef.current = getInitialLanguage()
-      setLanguageState(initialRef.current)
-    }
-    setIsMounted(true)
-  }, [])
+  const [language, setLanguageState] = useState<Language>(() => getInitialLanguage())
 
   const setLanguage = useCallback((lang: Language) => {
     setLanguageState(lang)
@@ -40,10 +30,6 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       localStorage.setItem('language', lang)
     }
   }, [])
-
-  if (!isMounted) {
-    return <>{children}</>
-  }
 
   return (
     <LanguageContext.Provider value={{ language, setLanguage }}>
