@@ -1,10 +1,10 @@
 {
   "version": "1.0",
-  "last_updated": "2026-05-14T01:15:00Z",
+  "last_updated": "2026-05-13T21:13:53.332Z",
   "last_agent": "claude-code",
   "current_task": {
-    "id": "T-031",
-    "title": "Criar página de login/signup com Supabase Auth",
+    "id": "T-032",
+    "title": "Criar página de pricing com 3 planos",
     "status": "pending",
     "started_at": null
   },
@@ -201,6 +201,14 @@
       "agent": "claude-code",
       "commit_sha": "ebf4e18",
       "notes": "All 11 API route files implemented. POST /api/auth/login, GET/POST /api/bar, GET/PUT/DELETE /api/bar/[id], GET/POST /api/bar/[id]/inventory, PUT/DELETE /api/bar/[id]/inventory/[itemId], POST /api/bar/[id]/share, DELETE /api/bar/[id]/share/[userId], GET/POST /api/ingredients, GET /api/ingredients/[id], GET /api/cocktails, GET /api/cocktails/[id]. src/types/api.ts created with all TypeScript interfaces. Fixed LanguageContext hydration flick. All endpoints tested: auth returns 401, bar returns 401 (auth required), cocktails/ingredients return JSON. Build passes, linting passes."
+    },
+    {
+      "id": "T-031",
+      "title": "Criar página de login/signup com Supabase Auth",
+      "completed_at": "2026-05-13T21:13:53.331Z",
+      "agent": "claude-code",
+      "commit_sha": "8f2f5d8",
+      "notes": "Login and signup pages with Supabase Auth (email/password + Google OAuth). i18n keys for PT/EN/ES. OAuth callback handler. Build passes successfully."
     }
   ],
   "tasks_queue": [
@@ -222,6 +230,21 @@
     }
   ],
   "session_log": [
+    {
+      "timestamp": "2026-05-13T21:13:53.332Z",
+      "agent": "claude-code",
+      "action": "completed_task",
+      "task_id": "T-031",
+      "files_changed": [
+        "app/login/page.tsx",
+        "app/signup/page.tsx",
+        "app/api/auth/callback/route.ts",
+        "src/components/auth/LoginForm.tsx",
+        "src/components/auth/SignupForm.tsx",
+        "src/lib/i18n/dictionaries.ts"
+      ],
+      "notes": "T-031 complete (8f2f5d8). Login/signup pages with Supabase Auth. Email/password forms + Google OAuth. i18n for all 3 locales. OAuth callback handler. Build passes. Next: T-032 (pricing page)."
+    },
     {
       "timestamp": "2026-05-14T01:15:00Z",
       "agent": "claude-code",
