@@ -1,10 +1,10 @@
 {
   "version": "1.0",
-  "last_updated": "2026-05-13T18:08:00Z",
+  "last_updated": "2026-05-13T22:45:00Z",
   "last_agent": "claude-code",
   "current_task": {
-    "id": "T-022",
-    "title": "Criar página SSG /drinks/category/[slug] e /drinks/ingredient/[slug]",
+    "id": "T-023",
+    "title": "Criar página de listagem /drinks com filtros e busca",
     "status": "pending",
     "started_at": null
   },
@@ -127,21 +127,44 @@
       "title": "Criar página SSG /drinks/[slug] com Schema.org + OG image dinâmica",
       "completed_at": "2026-05-13T18:08:00Z",
       "agent": "claude-code",
-      "commit_sha": "PENDING",
+      "commit_sha": "3805b3a",
       "notes": "SSG drink detail page complete. app/drinks/[slug]/page.tsx with generateStaticParams, generateMetadata, Recipe + Breadcrumb JSON-LD schemas. Dynamic OG image via app/api/og/[slug]/route.tsx using @vercel/og. REST API queries for build-time slug fetching. TypeScript strict, builds successfully."
+    },
+    {
+      "id": "T-022",
+      "title": "Criar página SSG /drinks/category/[slug] e /drinks/ingredient/[slug]",
+      "completed_at": "2026-05-13T22:45:00Z",
+      "agent": "claude-code",
+      "commit_sha": "d21833b",
+      "notes": "Collection pages for browsing by category and ingredient. app/drinks/category/[slug]/page.tsx and app/drinks/ingredient/[slug]/page.tsx with SSG, generateStaticParams, dynamic OG images. generateCollectionSchema() added to lib/seo/jsonld.ts. Grid layout with hover effects. TypeScript strict, builds successfully."
     }
   ],
   "tasks_queue": [
     {
-      "id": "T-022",
-      "title": "Criar página SSG /drinks/category/[slug] e /drinks/ingredient/[slug]",
+      "id": "T-023",
+      "title": "Criar página de listagem /drinks com filtros e busca",
       "priority": 1,
       "phase": "Fase 2 — SEO pages",
       "blockers": [],
-      "estimated_hours": 2
+      "estimated_hours": 3
     }
   ],
   "session_log": [
+    {
+      "timestamp": "2026-05-13T22:45:00Z",
+      "agent": "claude-code",
+      "action": "completed_task",
+      "task_id": "T-022",
+      "files_changed": [
+        "app/drinks/category/[slug]/page.tsx",
+        "app/drinks/ingredient/[slug]/page.tsx",
+        "app/api/og/category/[slug]/route.tsx",
+        "app/api/og/ingredient/[slug]/route.tsx",
+        "src/lib/seo/jsonld.ts",
+        "app/drinks/[slug]/page.tsx"
+      ],
+      "notes": "T-022 complete. SSG collection pages for categories and ingredients with dynamic OG images. Added generateCollectionSchema() to SEO helpers. All TypeScript strict, builds successfully."
+    },
     {
       "timestamp": "2026-05-13T20:35:00Z",
       "agent": "claude-code",
@@ -211,5 +234,5 @@
     "arch_ssg_strategy",
     "pricing_model"
   ],
-  "status": "T-021 complete. SSG drink detail pages ready. Next: T-022 (category/ingredient pages)."
+  "status": "T-022 complete. SSG category & ingredient pages ready. Next: T-023 (drinks listing with filters)."
 }
