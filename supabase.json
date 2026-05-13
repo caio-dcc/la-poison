@@ -1,0 +1,45 @@
+{
+  "project_id": "your_project_id",
+  "functions": [
+    {
+      "slug": "hello",
+      "description": "Hello world example function",
+      "importMap": ""
+    },
+    {
+      "slug": "cocktails-crud",
+      "description": "Cocktails CRUD operations",
+      "importMap": ""
+    },
+    {
+      "slug": "ingredients-crud",
+      "description": "Ingredients CRUD operations",
+      "importMap": ""
+    },
+    {
+      "slug": "chatbot-rate-limit",
+      "description": "Chatbot rate limiting logic",
+      "importMap": ""
+    },
+    {
+      "slug": "subscriptions-crud",
+      "description": "Subscriptions management",
+      "importMap": ""
+    },
+    {
+      "slug": "chatbot-rag",
+      "description": "RAG retrieval for chatbot context",
+      "importMap": ""
+    },
+    {
+      "slug": "chatbot-cache",
+      "description": "Response caching to reduce API costs",
+      "importMap": ""
+    },
+    {
+      "slug": "moderation",
+      "description": "Content moderation logic",
+      "importMap": ""
+    }
+  ]
+}

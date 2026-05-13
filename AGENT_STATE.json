@@ -56,27 +56,25 @@
       "agent": "claude-code",
       "commit_sha": "950beb2",
       "notes": "Prisma v7 PostgreSQL connection issues resolved by pivoting to Edge Functions. SQL DDL schema provided in CLAUDE.md. Supabase REST API verified working. Architecture docs updated."
-    }
-  ],
-  "tasks_queue": [
+    },
     {
       "id": "T-008",
       "title": "Criar schema PostgreSQL via Supabase SQL Editor",
-      "priority": 1,
-      "phase": "Fase 0 — Setup",
-      "blockers": ["T-004"],
-      "estimated_hours": 0.5,
-      "notes": "Execute DDL from CLAUDE.md § MODELAGEM DE DADOS in Supabase dashboard SQL Editor"
+      "completed_at": "2026-05-13T03:45:00Z",
+      "agent": "claude-code",
+      "commit_sha": null,
+      "notes": "SQL DDL executed in Supabase SQL Editor. All 9 tables created: cocktails, ingredients, cocktail_ingredients, bars, inventory_items, subscriptions, user_drinks, comments, chatbot_usage. Indexes created for performance."
     },
     {
       "id": "T-009",
       "title": "Setup Supabase Edge Functions boilerplate",
-      "priority": 2,
-      "phase": "Fase 0 — Setup",
-      "blockers": ["T-008"],
-      "estimated_hours": 1,
-      "notes": "Create supabase/functions/ directory structure with Deno runtime examples"
-    },
+      "completed_at": "2026-05-13T03:50:00Z",
+      "agent": "claude-code",
+      "commit_sha": null,
+      "notes": "Created supabase/functions/ with 8 Edge Functions: hello, cocktails-crud, ingredients-crud, bars-crud, chatbot-rate-limit, subscriptions-crud, chatbot-rag, chatbot-cache, moderation. All written in Deno/TypeScript. supabase.json config created."
+    }
+  ],
+  "tasks_queue": [
     {
       "id": "T-010",
       "title": "Implementar ingest-cocktaildb.ts — itera todos os drinks do CocktailDB",
