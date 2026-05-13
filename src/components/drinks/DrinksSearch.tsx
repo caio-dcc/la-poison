@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { Search, X } from 'lucide-react'
+import { useLanguage } from '@/hooks/useLanguage'
 
 interface Cocktail {
   id: string
@@ -41,6 +42,8 @@ export function DrinksSearch({
   cocktails: Cocktail[]
   filterOptions: FilterOptions
 }) {
+  const { dict } = useLanguage()
+
   const [filters, setFilters] = useState<Filters>({
     search: '',
     category: null,
@@ -136,7 +139,7 @@ export function DrinksSearch({
         <Search className="absolute left-3 top-3 text-shadow-grey w-5 h-5" />
         <input
           type="text"
-          placeholder="Search by name or category..."
+          placeholder={dict.searchPlaceholder}
           value={filters.search}
           onChange={e => setFilters({ ...filters, search: e.target.value })}
           className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-evergreen"
@@ -149,10 +152,10 @@ export function DrinksSearch({
           onClick={() => setShowFilters(!showFilters)}
           className="px-4 py-2 bg-evergreen text-porcelain rounded-lg hover:bg-hunter-green transition-colors font-medium"
         >
-          {showFilters ? 'Hide Filters' : 'Show Filters'}
+          {showFilters ? dict.hideFilters : dict.showFilters}
         </button>
         <div className="text-sm text-shadow-grey">
-          {filtered.length} of {cocktails.length} cocktails
+          {filtered.length} {dict.of} {cocktails.length} {dict.cocktails}
         </div>
       </div>
 
@@ -161,7 +164,7 @@ export function DrinksSearch({
         <div className="bg-white p-6 rounded-lg shadow-sm space-y-6 border border-gray-200">
           {/* Sort */}
           <div>
-            <label className="block text-sm font-semibold text-evergreen mb-2">Sort By</label>
+            <label className="block text-sm font-semibold text-evergreen mb-2">{dict.sortBy}</label>
             <select
               value={filters.sortBy}
               onChange={e =>
@@ -169,21 +172,23 @@ export function DrinksSearch({
               }
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-evergreen"
             >
-              <option value="name">Name (A-Z)</option>
-              <option value="difficulty">Difficulty</option>
-              <option value="abv">ABV (High to Low)</option>
+              <option value="name">{dict.nameAZ}</option>
+              <option value="difficulty">{dict.difficultyLow}</option>
+              <option value="abv">{dict.abvHigh}</option>
             </select>
           </div>
 
           {/* Category Filter */}
           <div>
-            <label className="block text-sm font-semibold text-evergreen mb-2">Category</label>
+            <label className="block text-sm font-semibold text-evergreen mb-2">
+              {dict.category}
+            </label>
             <select
               value={filters.category || ''}
               onChange={e => setFilters({ ...filters, category: e.target.value || null })}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-evergreen"
             >
-              <option value="">All Categories</option>
+              <option value="">{dict.allCategories}</option>
               {filterOptions.categories.map(cat => (
                 <option key={cat} value={cat}>
                   {cat}
@@ -195,7 +200,9 @@ export function DrinksSearch({
           {/* Difficulty Filter */}
           {filterOptions.difficulties.length > 0 && (
             <div>
-              <label className="block text-sm font-semibold text-evergreen mb-2">Difficulty</label>
+              <label className="block text-sm font-semibold text-evergreen mb-2">
+                {dict.difficulty}
+              </label>
               <select
                 value={filters.difficulty === null ? '' : filters.difficulty}
                 onChange={e =>
@@ -206,7 +213,7 @@ export function DrinksSearch({
                 }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-evergreen"
               >
-                <option value="">All Levels</option>
+                <option value="">{dict.allLevels}</option>
                 {filterOptions.difficulties.map(diff => (
                   <option key={diff} value={diff}>
                     Level {diff}
@@ -219,7 +226,7 @@ export function DrinksSearch({
           {/* ABV Range */}
           <div>
             <label className="block text-sm font-semibold text-evergreen mb-2">
-              Alcohol by Volume (ABV): {filters.abvMin}–{filters.abvMax}%
+              {dict.abv}: {filters.abvMin}–{filters.abvMax}%
             </label>
             <div className="space-y-2">
               <input
@@ -244,7 +251,7 @@ export function DrinksSearch({
           {/* Prep Time Range */}
           <div>
             <label className="block text-sm font-semibold text-evergreen mb-2">
-              Prep Time: {filters.prepTimeMin}–{filters.prepTimeMax} min
+              {dict.prepTime}: {filters.prepTimeMin}–{filters.prepTimeMax} min
             </label>
             <div className="space-y-2">
               <input
@@ -275,7 +282,7 @@ export function DrinksSearch({
               className="w-full px-4 py-2 bg-gray-200 text-shadow-grey rounded-lg hover:bg-gray-300 transition-colors font-medium flex items-center justify-center gap-2"
             >
               <X className="w-4 h-4" />
-              Reset Filters
+              {dict.resetFilters}
             </button>
           )}
         </div>
@@ -291,6 +298,7 @@ export function DrinksSearch({
               className="group bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-lg transition-shadow"
             >
               <div className="relative aspect-square overflow-hidden bg-gray-200">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={cocktail.thumb_url}
                   alt={cocktail.name}
@@ -314,12 +322,12 @@ export function DrinksSearch({
         </div>
       ) : (
         <div className="text-center py-12">
-          <p className="text-lg text-shadow-grey">No cocktails found matching your filters.</p>
+          <p className="text-lg text-shadow-grey">{dict.noCocktailsFound}</p>
           <button
             onClick={handleReset}
             className="mt-4 px-6 py-2 bg-evergreen text-porcelain rounded-lg hover:bg-hunter-green transition-colors font-medium"
           >
-            Reset Filters
+            {dict.resetFilters}
           </button>
         </div>
       )}

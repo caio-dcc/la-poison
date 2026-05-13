@@ -1,4 +1,4 @@
-import { Metadata, ResolvingMetadata } from 'next'
+import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/utils/supabase/server'
@@ -9,11 +9,6 @@ import {
   mergeJsonLdSchemas,
 } from '@/lib/seo/jsonld'
 import { truncateDescription, formatTitle } from '@/lib/seo/metadata'
-
-interface Ingredient {
-  id: string
-  name: string
-}
 
 interface CocktailWithIngredient {
   id: string
@@ -108,10 +103,11 @@ export async function generateStaticParams() {
   return slugs.map(slug => ({ slug }))
 }
 
-export async function generateMetadata(
-  { params }: { params: Promise<{ slug: string }> },
-  _parent: ResolvingMetadata
-): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>
+}): Promise<Metadata> {
   const { slug } = await params
   const cocktails = await getCocktailsByIngredient(slug)
   const ingredientName = formatIngredientName(slug)
@@ -216,6 +212,7 @@ export default async function IngredientPage({ params }: { params: Promise<{ slu
               className="group bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-lg transition-shadow"
             >
               <div className="relative aspect-square overflow-hidden bg-gray-200">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={cocktail.thumb_url}
                   alt={cocktail.name}
