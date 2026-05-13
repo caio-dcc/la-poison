@@ -138,5 +138,5 @@
     "arch_ssg_strategy",
     "pricing_model"
   ],
-  "blocked_reason": "T-004 blocked: DATABASE_URL configured but Supabase server not reachable (P1001). Verify: (1) Supabase project is active, (2) database is running, (3) network connectivity"
+  "blocked_reason": "T-004 blocked: Supabase REST API verified reachable (✅). PostgreSQL direct connection failing (P1001). Issue: PostgreSQL port 5432 not accessible from your network. Workaround: Use Supabase client for schema creation or switch to using Supabase Data API with Prisma."
 }

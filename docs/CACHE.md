@@ -9,7 +9,7 @@
 
 **Contexto:** definir framework, banco, auth, payments e AI para o relançamento do MVP original como SaaS SEO-first.
 
-**Decisão:** Next.js 14 App Router + TypeScript strict + Tailwind + shadcn/ui + PostgreSQL (Supabase) + Prisma + Stripe + Cloudflare R2 + Claude Haiku + Vercel.
+**Decisão:** Next.js 14 App Router + TypeScript strict + Tailwind + shadcn/ui + PostgreSQL (Supabase) + Stripe + Cloudflare R2 + Claude Haiku + Vercel. ~~Prisma~~ → substituído por Supabase Edge Functions (vide decisão 2026-05-13).
 
 **Alternativas consideradas:**
 
@@ -108,6 +108,39 @@
 **Decisão:** preservar 100% dos modelos originais e endpoints. Adicionar novos modelos sem quebrar os existentes. Endpoints mapeiam 1:1 da spec original.
 
 **Justificativa:** permite migração de dados se houver usuários do MVP, e mantém clients existentes funcionando.
+
+---
+
+## 2026-05-13 — Remover Prisma, usar Supabase Edge Functions
+
+**Contexto:** Prisma v7 CLI falha ao conectar em PostgreSQL direto (P1001) via rede. REST API do Supabase funciona normalmente. Prisma adicionaria overhead de ORM sem valor agregado em um projeto serverless.
+
+**Decisão:** Remover Prisma completamente. Usar:
+
+- **SQL direto** no Supabase SQL Editor para criar schema
+- **Supabase Edge Functions (Deno)** para CRUD operations
+- **Tipagem manual (TypeScript)** das respostas de queries
+- **Supabase Client (`@supabase/supabase-js`)** no frontend para queries simples
+
+**Alternativas consideradas:**
+
+- Manter Prisma + usar Supabase Data API → Prisma v7 não suporta Data API, exigiria downgrade v5
+- Usar node-postgres direto → reinventar CRUD patterns; Edge Functions já entregam isso
+- Usar Drizzle ORM → overhead desnecessário para essa escala; SQL direto é mais claro
+
+**Trade-offs aceitos:**
+
+- Sem migrations automáticas — schema é versionado como SQL em `supabase/migrations/`
+- Queries mais verbosas (SQL direto vs Prisma query builder) — mitigado por type safety via TypeScript interfaces e comentários
+- Sem auto-completion de campos — compensado por comentários em Edge Functions
+
+**Benefícios:**
+
+- ✅ Zero problemas de conexão (Supabase REST sempre funciona)
+- ✅ Edge Functions rodam no Supabase (serverless nativo, não em Vercel)
+- ✅ Embeddings e RAG armazenados em `vector` PostgreSQL (pgvector built-in)
+- ✅ Queries otimizadas manualmente para SEO/cache
+- ✅ Reduz build time (sem compilação Prisma)
 
 ---
 

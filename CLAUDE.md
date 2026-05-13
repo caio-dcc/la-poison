@@ -48,21 +48,21 @@ Construir uma plataforma web Next.js 14 (App Router) **mobile-first** com SEO t�
 
 ## 🏗️ STACK OBRIGATÓRIA
 
-| Camada          | Tecnologia                        | Justificativa                                  |
-| --------------- | --------------------------------- | ---------------------------------------------- |
-| Framework       | Next.js 14 App Router             | SSG nativo, RSC, melhor SEO técnico do mercado |
-| Linguagem       | TypeScript strict                 | Zero `any`, tipagem completa                   |
-| Estilo          | Tailwind CSS + shadcn/ui          | Mobile-first, baixo CSS bundle                 |
-| Banco           | PostgreSQL via Supabase           | Free tier 500MB, auth integrada                |
-| ORM             | Prisma                            | Mantém compatibilidade com schema original     |
-| Auth            | Supabase Auth                     | Email + OAuth Google, integrado ao DB          |
-| Pagamentos      | Stripe                            | Checkout + webhooks + customer portal          |
-| Storage         | Cloudflare R2                     | $0 egress, CDN global                          |
-| IA Chatbot      | Claude Haiku (online) + RAG local | Custo mínimo, alta qualidade                   |
-| Embeddings      | `@xenova/transformers` (local)    | Sem custo de API para RAG                      |
-| Deploy          | Vercel                            | Edge runtime, ISR nativo                       |
-| Observabilidade | Vercel Analytics + Sentry free    | Métricas + erros                               |
-| SEO tools       | next-sitemap, schema-dts          | Sitemap automático + JSON-LD tipado            |
+| Camada          | Tecnologia                         | Justificativa                                  |
+| --------------- | ---------------------------------- | ---------------------------------------------- |
+| Framework       | Next.js 14 App Router              | SSG nativo, RSC, melhor SEO técnico do mercado |
+| Linguagem       | TypeScript strict                  | Zero `any`, tipagem completa                   |
+| Estilo          | Tailwind CSS + shadcn/ui           | Mobile-first, baixo CSS bundle                 |
+| Banco           | PostgreSQL via Supabase            | Free tier 500MB, auth integrada                |
+| Backend         | Supabase Edge Functions (Deno)     | Operações CRUD, sem ORM overhead               |
+| Auth            | Supabase Auth (SSR)                | Email + OAuth Google, cookies automáticos      |
+| Pagamentos      | Stripe                             | Checkout + webhooks + customer portal          |
+| Storage         | Cloudflare R2                      | $0 egress, CDN global                          |
+| IA Chatbot      | Claude Haiku (streaming)           | Custo mínimo, alta qualidade                   |
+| Embeddings      | `@xenova/transformers` (local)     | Sem custo de API para RAG                      |
+| Deploy          | Vercel + Supabase (Edge Functions) | Next.js frontend + serverless backend          |
+| Observabilidade | Vercel Analytics + Supabase logs   | Métricas + erros integrados                    |
+| SEO tools       | next-sitemap, schema-dts           | Sitemap automático + JSON-LD tipado            |
 
 **Nunca proponha tecnologias fora dessa lista sem antes documentar a justificativa em `docs/CACHE.md` e atualizar `AGENT_STATE.json`.**
 
@@ -82,8 +82,12 @@ lapoison/
 │   ├── SEO_CHECKLIST.md          # Checklist técnico de SEO
 │   ├── API_SPEC.md               # Endpoints do MVP original (referência)
 │   └── DEPLOYMENT.md             # Guia de deploy
-├── prisma/
-│   └── schema.prisma             # Modelos: User, Cocktail, Ingredient, Bar, InventoryItem, Subscription
+├── supabase/
+│   └── functions/                # Edge Functions para operações CRUD
+│       ├── cocktails-crud/
+│       ├── ingredients-crud/
+│       ├── bars-crud/
+│       └── chatbot-rate-limit/
 ├── scripts/
 │   ├── ingest-cocktaildb.ts      # Ingestão one-shot da CocktailDB
 │   ├── enrich-with-ai.ts         # Enriquece descrições/história/fun fact via Claude Haiku
@@ -149,111 +153,122 @@ lapoison/
 
 ---
 
-## 🗂️ MODELAGEM DE DADOS (Prisma)
+## 🗂️ MODELAGEM DE DADOS (PostgreSQL via Supabase)
 
-Manter compatibilidade com o schema do MVP original (User, Bar, Cocktail, Ingredient, CocktailIngredient, InventoryItem) e adicionar:
+**Sem Prisma.** Usar SQL direto + Edge Functions para queries.
 
-```prisma
-model User {
-  id                String         @id @default(cuid())
-  email             String         @unique
-  username          String?        @unique
-  passwordHash      String?        // null se OAuth-only
-  supabaseId        String?        @unique
-  // SaaS
-  stripeCustomerId  String?        @unique
-  subscription      Subscription?
-  // Originais
-  createdBars       Bar[]          @relation("BarCreator")
-  sharedBars        Bar[]          @relation("BarShares")
-  // Engagement
-  submittedDrinks   UserDrink[]    // "envie seu drink"
-  comments          Comment[]
-  createdAt         DateTime       @default(now())
-  updatedAt         DateTime       @updatedAt
-}
+Manter compatibilidade com o schema do MVP original (User, Bar, Cocktail, Ingredient, CocktailIngredient, InventoryItem) e adicionar tabelas para SaaS:
 
-model Subscription {
-  id                  String   @id @default(cuid())
-  userId              String   @unique
-  user                User     @relation(fields: [userId], references: [id])
-  stripeSubId         String   @unique
-  status              SubscriptionStatus // active | past_due | canceled | trialing
-  currentPeriodEnd    DateTime
-  planType            PlanType           // free | pro_monthly | pro_yearly
-  cancelAtPeriodEnd   Boolean  @default(false)
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
-}
+**SQL DDL para criação de tabelas (executar em Supabase SQL Editor):**
 
-enum SubscriptionStatus {
-  active
-  past_due
-  canceled
-  trialing
-  incomplete
-}
+```sql
+-- Core tables (MVP original + extensions)
+CREATE TABLE cocktails (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  category TEXT,
+  alcoholic BOOLEAN DEFAULT true,
+  iba_drink BOOLEAN DEFAULT false,
+  instructions TEXT,
+  thumb_url TEXT,
+  -- SEO extras
+  slug TEXT UNIQUE NOT NULL,
+  meta_title_pt TEXT, meta_title_en TEXT, meta_title_es TEXT,
+  meta_desc_pt TEXT, meta_desc_en TEXT, meta_desc_es TEXT,
+  description_pt TEXT, description_en TEXT, description_es TEXT,
+  history_pt TEXT, history_en TEXT, history_es TEXT,
+  fun_fact_pt TEXT, fun_fact_en TEXT, fun_fact_es TEXT,
+  embedding_vector VECTOR(384), -- RAG embeddings
+  view_count INT DEFAULT 0,
+  created_at TIMESTAMP DEFAULT now(),
+  updated_at TIMESTAMP DEFAULT now()
+);
 
-enum PlanType {
-  free
-  pro_monthly
-  pro_yearly
-}
+CREATE TABLE ingredients (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL UNIQUE,
+  type TEXT, -- spirit, liqueur, juice, etc
+  description TEXT,
+  created_at TIMESTAMP DEFAULT now()
+);
 
-model UserDrink {
-  id          String   @id @default(cuid())
-  userId      String
-  user        User     @relation(fields: [userId], references: [id])
-  cocktailId  String?  // se baseado em coquetel existente
-  cocktail    Cocktail? @relation(fields: [cocktailId], references: [id])
-  name        String
-  description String?
-  imageUrl    String   // R2 URL
-  comment     String?
-  approved    Boolean  @default(false) // moderação manual/automática
-  createdAt   DateTime @default(now())
-}
+CREATE TABLE cocktail_ingredients (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  cocktail_id UUID REFERENCES cocktails(id) ON DELETE CASCADE,
+  ingredient_id UUID REFERENCES ingredients(id) ON DELETE CASCADE,
+  measure TEXT, -- "30ml", "1 oz", etc
+  created_at TIMESTAMP DEFAULT now(),
+  UNIQUE(cocktail_id, ingredient_id)
+);
 
-model Comment {
-  id          String   @id @default(cuid())
-  userId      String
-  user        User     @relation(fields: [userId], references: [id])
-  cocktailId  String
-  cocktail    Cocktail @relation(fields: [cocktailId], references: [id])
-  body        String   @db.Text
-  approved    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-}
+CREATE TABLE bars (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  city TEXT,
+  created_by_user_id UUID,
+  created_at TIMESTAMP DEFAULT now()
+);
 
-model ChatbotUsage {
-  id        String   @id @default(cuid())
-  userId    String?  // null = anônimo (rate-limited por IP)
-  ipHash    String?
-  query     String   @db.Text
-  tokensIn  Int
-  tokensOut Int
-  costUsd   Decimal  @db.Decimal(10, 6)
-  createdAt DateTime @default(now())
-  @@index([userId, createdAt])
-  @@index([ipHash, createdAt])
-}
+CREATE TABLE inventory_items (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  bar_id UUID REFERENCES bars(id) ON DELETE CASCADE,
+  ingredient_id UUID REFERENCES ingredients(id) ON DELETE CASCADE,
+  quantity DECIMAL(10,2),
+  unit TEXT, -- ml, bottle, etc
+  created_at TIMESTAMP DEFAULT now()
+);
 
-// Cocktail recebe campos extras para SEO
-model Cocktail {
-  // ... todos os campos originais ...
-  slug              String   @unique // crítico para SEO
-  metaTitlePT       String?
-  metaTitleEN       String?
-  metaTitleES       String?
-  metaDescPT        String?  @db.Text
-  metaDescEN        String?  @db.Text
-  metaDescES        String?  @db.Text
-  embeddingVector   Bytes?   // RAG: serialize Float32Array
-  viewCount         Int      @default(0) // popularidade
-  comments          Comment[]
-  userSubmissions   UserDrink[]
-}
+-- SaaS tables
+CREATE TABLE subscriptions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL,
+  stripe_subscription_id TEXT UNIQUE,
+  status TEXT CHECK (status IN ('active', 'past_due', 'canceled', 'trialing', 'incomplete')),
+  plan_type TEXT CHECK (plan_type IN ('free', 'pro_monthly', 'pro_yearly')),
+  current_period_end TIMESTAMP,
+  cancel_at_period_end BOOLEAN DEFAULT false,
+  created_at TIMESTAMP DEFAULT now(),
+  updated_at TIMESTAMP DEFAULT now()
+);
+
+CREATE TABLE user_drinks (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL,
+  cocktail_id UUID REFERENCES cocktails(id),
+  name TEXT NOT NULL,
+  description TEXT,
+  image_url TEXT,
+  comment TEXT,
+  approved BOOLEAN DEFAULT false,
+  created_at TIMESTAMP DEFAULT now()
+);
+
+CREATE TABLE comments (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL,
+  cocktail_id UUID REFERENCES cocktails(id) ON DELETE CASCADE,
+  body TEXT NOT NULL,
+  approved BOOLEAN DEFAULT true,
+  created_at TIMESTAMP DEFAULT now()
+);
+
+CREATE TABLE chatbot_usage (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID,
+  ip_hash TEXT,
+  query TEXT NOT NULL,
+  tokens_in INT,
+  tokens_out INT,
+  cost_usd DECIMAL(10,6),
+  created_at TIMESTAMP DEFAULT now()
+);
+CREATE INDEX idx_chatbot_usage_user ON chatbot_usage(user_id, created_at);
+CREATE INDEX idx_chatbot_usage_ip ON chatbot_usage(ip_hash, created_at);
+CREATE INDEX idx_cocktails_slug ON cocktails(slug);
+CREATE INDEX idx_cocktails_category ON cocktails(category);
 ```
+
+**Nota:** Tabelas de `users` e autenticação são gerenciadas automaticamente pelo Supabase Auth (`auth.users` schema).
 
 ---
 
