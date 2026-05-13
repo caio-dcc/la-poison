@@ -50,6 +50,14 @@ export interface OrganizationSchemaParams {
   foundingDate?: string
 }
 
+export interface CollectionSchemaParams {
+  name: string
+  description: string
+  url: string
+  image?: string
+  itemCount?: number
+}
+
 /**
  * Generate Recipe schema for cocktail/drink pages
  * Used for rich results showing recipe info in search
@@ -141,6 +149,24 @@ export function generateBreadcrumbSchema(params: BreadcrumbListParams) {
       name: item.name,
       item: item.url,
     })),
+  }
+}
+
+/**
+ * Generate Collection schema for category/ingredient pages
+ * Used for collection pages listing multiple items
+ */
+export function generateCollectionSchema(params: CollectionSchemaParams) {
+  const { name, description, url, image, itemCount } = params
+
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Collection',
+    name,
+    description,
+    url,
+    ...(image && { image }),
+    ...(itemCount && { numberOfItems: itemCount }),
   }
 }
 

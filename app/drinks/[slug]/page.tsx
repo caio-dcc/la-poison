@@ -54,13 +54,17 @@ async function getCocktail(slug: string): Promise<CocktailWithIngredients | null
 
     interface IngredientRow {
       measure: string | null
-      ingredients: { name: string } | null
+      ingredients: { name: string }[] | { name: string } | null
     }
 
-    const ingredients = (ingredientData || []).map((item: IngredientRow) => ({
-      name: item.ingredients?.name || 'Unknown',
-      measure: item.measure,
-    }))
+    const ingredients = (ingredientData || []).map(item => {
+      const ing = item.ingredients as IngredientRow['ingredients']
+      const name = Array.isArray(ing) ? ing[0]?.name : (ing as { name: string } | null)?.name
+      return {
+        name: name || 'Unknown',
+        measure: item.measure,
+      }
+    })
 
     return {
       ...(data as CocktailRow),
