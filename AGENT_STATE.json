@@ -1,10 +1,10 @@
 {
   "version": "1.0",
-  "last_updated": "2026-05-13T20:35:00Z",
+  "last_updated": "2026-05-13T21:20:00Z",
   "last_agent": "claude-code",
   "current_task": {
-    "id": "T-014",
-    "title": "Implementar generate-embeddings.ts — cria embeddings 384-dim via Xenova para RAG",
+    "id": "T-020",
+    "title": "Criar src/lib/seo/metadata.ts com helpers tipados",
     "status": "pending",
     "started_at": null
   },
@@ -105,24 +105,32 @@
       "agent": "claude-code",
       "commit_sha": "7dfbaee",
       "notes": "Batches API pipeline ready. scripts/enrich-with-ai.js + collect-enrichment.js. Demo mode for non-valid API keys. 425 drinks in 9 batches of 50 (~$3 cost). Updated seed-db.js to auto-detect enriched data."
+    },
+    {
+      "id": "T-014",
+      "title": "Implementar generate-embeddings.ts — cria embeddings 384-dim via Xenova para RAG",
+      "completed_at": "2026-05-13T21:15:00Z",
+      "agent": "claude-code",
+      "commit_sha": "caa0560",
+      "notes": "Embeddings pipeline complete. generate-embeddings.js/ts creates 384-dim vectors for all 425 cocktails using Xenova/all-MiniLM-L6-v2. PostgreSQL migration (003) adds pgvector + HNSW index. Edge Functions: embeddings-upsert (batch upload) + semantic-search (RAG queries). Output: cocktails-embedded.json."
     }
   ],
   "tasks_queue": [
     {
-      "id": "T-014",
-      "title": "Implementar generate-embeddings.ts — cria embeddings 384-dim via Xenova para RAG",
-      "priority": 1,
-      "phase": "Fase 1 — Ingestão de dados",
-      "blockers": [],
-      "estimated_hours": 2
-    },
-    {
       "id": "T-020",
       "title": "Criar src/lib/seo/metadata.ts com helpers tipados",
-      "priority": 2,
+      "priority": 1,
       "phase": "Fase 2 — SEO core",
-      "blockers": ["T-013"],
+      "blockers": [],
       "estimated_hours": 1
+    },
+    {
+      "id": "T-021",
+      "title": "Criar página SSG /drinks/[slug] com Schema.org + OG image dinâmica",
+      "priority": 2,
+      "phase": "Fase 2 — SEO pages",
+      "blockers": ["T-020"],
+      "estimated_hours": 3
     }
   ],
   "session_log": [
@@ -141,6 +149,23 @@
         "scripts/data/raw/batch-ids.json"
       ],
       "notes": "T-013 complete. Anthropic Batches API pipeline for enrichment. Ready for production use with valid ANTHROPIC_API_KEY."
+    },
+    {
+      "timestamp": "2026-05-13T21:20:00Z",
+      "agent": "claude-code",
+      "action": "completed_task",
+      "task_id": "T-014",
+      "files_changed": [
+        "scripts/generate-embeddings.js",
+        "scripts/generate-embeddings.ts",
+        "scripts/upload-embeddings.js",
+        "scripts/upload-embeddings.ts",
+        "scripts/data/raw/cocktails-embedded.json",
+        "supabase/migrations/003_add_pgvector_embeddings.sql",
+        "supabase/functions/embeddings-upsert/index.ts",
+        "supabase/functions/semantic-search/index.ts"
+      ],
+      "notes": "T-014 complete. Embeddings generation (Xenova) + pgvector storage + Edge Functions for RAG. 425 cocktails embedded in 384 dims."
     }
   ],
   "cache_keys": [
@@ -150,5 +175,5 @@
     "arch_ssg_strategy",
     "pricing_model"
   ],
-  "status": "T-013 complete. AI enrichment pipeline ready (Batches API). Next: T-014 (embeddings generation) or Phase 2 SEO pages."
+  "status": "T-014 complete. Embeddings pipeline (Xenova + pgvector) ready. Next: T-020 (SEO metadata helpers)."
 }
