@@ -14,4 +14,17 @@
 - PID:          13996
 - Dir:          D:\lapoison
 - Log:   ⚠ Found a change in next.config.ts. Restarting the server to apply the changes...
-[?25h
+▲ Next.js 16.2.6 (Turbopack)
+- Local:         http://localhost:3001
+- Network:       http://192.168.5.46:3001
+- Environments: .env.local, .env
+✓ Ready in 953ms
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+
+○ Compiling / ...
+ GET / 200 in 4.4s (next.js: 4.1s, proxy.ts: 86ms, application-code: 178ms)
+[browser] Image with src "http://localhost:3001/vercel.svg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+  Reload env: .env.local
+ GET / 200 in 371ms (next.js: 288ms, proxy.ts: 24ms, application-code: 59ms)
+  Reload env: .env.local
+ GET / 200 in 264ms (next.js: 106ms, proxy.ts: 25ms, application-code: 133ms)

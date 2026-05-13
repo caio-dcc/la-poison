@@ -1,18 +1,22 @@
+import { createClient } from '@/utils/supabase/middleware'
 import { type NextRequest, NextResponse } from 'next/server'
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // Protected routes that require authentication
   const protectedRoutes = ['/(app)/']
   const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route))
 
+  // Refresh session for all routes via Supabase middleware
+  const supabaseResponse = createClient(request)
+
   if (isProtectedRoute) {
-    // Check for auth token in cookie or headers
-    // For now, just pass through - Supabase auth will handle this
+    // Supabase auth session is automatically refreshed via middleware
+    // Protected route access control can be added here if needed
   }
 
-  return NextResponse.next()
+  return supabaseResponse
 }
 
 export const config = {

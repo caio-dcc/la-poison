@@ -17,7 +17,11 @@
       "Bash(npm test *)",
       "Bash(npm ls *)",
       "Bash(git add *)",
-      "Bash(git commit -m 'setup: initialize Next.js 14 project with testing and CI *)"
+      "Bash(git commit -m 'setup: initialize Next.js 14 project with testing and CI *)",
+      "Bash(export DATABASE_URL=\"postgresql://postgres.khsmofphhblkmsnlwpyl:sgRe4Sdltb1M2SXt@db.khsmofphhblkmsnlwpyl.supabase.co:5432/postgres?schema=public\")",
+      "Bash(npx ts-node *)",
+      "Bash(node scripts/test-supabase-connection.js)",
+      "Bash(node -r dotenv/config scripts/test-supabase-connection.js)"
     ]
   }
 }
