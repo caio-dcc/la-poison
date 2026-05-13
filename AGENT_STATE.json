@@ -1,12 +1,12 @@
 {
   "version": "1.0",
-  "last_updated": "2026-05-13T19:10:00Z",
+  "last_updated": "2026-05-13T19:22:00Z",
   "last_agent": "claude-code",
   "current_task": {
-    "id": "T-011",
-    "title": "Implementar upload-images-r2.ts — baixa thumb, converte para WebP, faz upload R2",
+    "id": "T-013",
+    "title": "Implementar enrich-with-ai.ts — gera PT/EN/ES descriptions via Claude Haiku em batch",
     "status": "pending",
-    "started_at": "2026-05-13T19:15:00Z"
+    "started_at": "2026-05-13T19:30:00Z"
   },
   "completed_tasks": [
     {
@@ -79,8 +79,24 @@
       "title": "Implementar ingest-cocktaildb.ts — itera todos os drinks do CocktailDB",
       "completed_at": "2026-05-13T19:10:00Z",
       "agent": "claude-code",
-      "commit_sha": null,
-      "notes": "Ingested 425 unique drinks from CocktailDB API. Output: scripts/data/raw/cocktails.json. Next: seed into DB via T-012 after T-011 (image upload)."
+      "commit_sha": "091735c",
+      "notes": "Ingested 425 unique drinks from CocktailDB API. Output: scripts/data/raw/cocktails.json."
+    },
+    {
+      "id": "T-011",
+      "title": "Implementar upload-images-r2.ts — baixa thumb, converte para WebP, faz upload R2",
+      "completed_at": "2026-05-13T19:18:00Z",
+      "agent": "claude-code",
+      "commit_sha": "1a0ffc2",
+      "notes": "Downloaded 425 thumbnails from CocktailDB. Cache: scripts/data/images/. Image map: scripts/data/raw/image-map.json. Mock R2 upload ready."
+    },
+    {
+      "id": "T-012",
+      "title": "Implementar seed-db.ts — insere drinks no Postgres",
+      "completed_at": "2026-05-13T19:22:00Z",
+      "agent": "claude-code",
+      "commit_sha": "1a0ffc2",
+      "notes": "Seed script ready: 18 categories, 60 ingredients, 425 cocktails, 1668 relationships. Awaits T-013 for PT/ES enrichment."
     }
   ],
   "tasks_queue": [
@@ -183,5 +199,5 @@
     "arch_ssg_strategy",
     "pricing_model"
   ],
-  "status": "T-010 complete: 425 unique cocktails ingested. Ready for T-011 (R2 image upload) and T-012 (database seed)."
+  "status": "T-010/T-011/T-012 complete. Data pipeline ready: 425 drinks ingested, 425 images downloaded, seed script ready. Next: T-013 (AI enrichment for PT/ES descriptions)."
 }
