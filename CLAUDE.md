@@ -126,7 +126,6 @@ lapoison/
 │   │   ├── seo/                  # JsonLd, BreadcrumbsLd, RecipeLd
 │   │   └── chatbot/              # ChatStream, IngredientPicker, GateModal
 │   ├── lib/
-│   │   ├── db.ts                 # Prisma client singleton
 │   │   ├── auth.ts               # Supabase auth helpers
 │   │   ├── stripe.ts             # Stripe client + price IDs
 │   │   ├── rag/
