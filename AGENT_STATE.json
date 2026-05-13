@@ -3,8 +3,8 @@
   "last_updated": "2026-05-13T23:15:00Z",
   "last_agent": "claude-code",
   "current_task": {
-    "id": "T-025",
-    "title": "Implementar Dynamic Sitemap (app/sitemap.ts)",
+    "id": "T-026",
+    "title": "Implementar robots.txt (app/robots.ts)",
     "status": "pending",
     "started_at": null
   },
@@ -153,19 +153,35 @@
       "agent": "claude-code",
       "commit_sha": "6699abf",
       "notes": "LanguageContext + useLanguage hook for global state. Dictionaries for PT/EN/ES (all UI strings). LanguageProvider wraps app via RootLayoutWrapper. LanguageSelector (flag buttons) in navbar. localStorage persistence + browser language detection. DrinksSearch updated to consume dict. Graceful SSG fallback to PT. useRef pattern for hydration safety."
+    },
+    {
+      "id": "T-025",
+      "title": "Implementar Dynamic Sitemap (app/sitemap.ts)",
+      "completed_at": "2026-05-14T00:05:00Z",
+      "agent": "claude-code",
+      "commit_sha": "02a2eb2",
+      "notes": "app/sitemap.ts exports MetadataRoute.Sitemap with all public URLs: home, /drinks listing, 425 cocktails, categories, ingredients, static pages (/about, /pricing, /community). Fetches data from Supabase REST API in parallel. lastMod from database updated_at, changeFreq: daily for /drinks, weekly for recipes, monthly for static. Build succeeds, sitemap.xml route recognized."
     }
   ],
   "tasks_queue": [
     {
-      "id": "T-025",
-      "title": "Implementar Dynamic Sitemap (app/sitemap.ts)",
+      "id": "T-026",
+      "title": "Implementar robots.txt (app/robots.ts)",
       "priority": 1,
       "phase": "Fase 3 — SEO Core",
       "blockers": [],
-      "estimated_hours": 1
+      "estimated_hours": 0.5
     }
   ],
   "session_log": [
+    {
+      "timestamp": "2026-05-14T00:05:00Z",
+      "agent": "claude-code",
+      "action": "completed_task",
+      "task_id": "T-025",
+      "files_changed": ["app/sitemap.ts"],
+      "notes": "T-025 complete. Dynamic sitemap.xml generation with all public URLs (cocktails, categories, ingredients, static pages). Fetches from Supabase REST API, includes lastMod from updated_at, assigns changeFreq by route type. Build successful, sitemap.xml route prerendered. Commit: 02a2eb2"
+    },
     {
       "timestamp": "2026-05-13T23:45:00Z",
       "agent": "claude-code",
@@ -281,5 +297,5 @@
     "arch_ssg_strategy",
     "pricing_model"
   ],
-  "status": "T-024 complete. i18n (PT/EN/ES) system ready across all routes. Next: T-025 (Dynamic Sitemap)."
+  "status": "T-025 complete. Dynamic sitemap.xml generation active. Next: T-026 (robots.txt)."
 }
