@@ -1,12 +1,12 @@
 {
   "version": "1.0",
-  "last_updated": "2026-05-13T19:22:00Z",
+  "last_updated": "2026-05-13T20:35:00Z",
   "last_agent": "claude-code",
   "current_task": {
-    "id": "T-013",
-    "title": "Implementar enrich-with-ai.ts — gera PT/EN/ES descriptions via Claude Haiku em batch",
+    "id": "T-014",
+    "title": "Implementar generate-embeddings.ts — cria embeddings 384-dim via Xenova para RAG",
     "status": "pending",
-    "started_at": "2026-05-13T19:30:00Z"
+    "started_at": null
   },
   "completed_tasks": [
     {
@@ -97,99 +97,50 @@
       "agent": "claude-code",
       "commit_sha": "1a0ffc2",
       "notes": "Seed script ready: 18 categories, 60 ingredients, 425 cocktails, 1668 relationships. Awaits T-013 for PT/ES enrichment."
+    },
+    {
+      "id": "T-013",
+      "title": "Implementar enrich-with-ai.ts — gera PT/EN/ES descriptions via Claude Haiku em batch",
+      "completed_at": "2026-05-13T20:35:00Z",
+      "agent": "claude-code",
+      "commit_sha": "7dfbaee",
+      "notes": "Batches API pipeline ready. scripts/enrich-with-ai.js + collect-enrichment.js. Demo mode for non-valid API keys. 425 drinks in 9 batches of 50 (~$3 cost). Updated seed-db.js to auto-detect enriched data."
     }
   ],
   "tasks_queue": [
     {
-      "id": "T-010",
-      "title": "Implementar ingest-cocktaildb.ts — itera todos os drinks do CocktailDB",
-      "priority": 2,
+      "id": "T-014",
+      "title": "Implementar generate-embeddings.ts — cria embeddings 384-dim via Xenova para RAG",
+      "priority": 1,
       "phase": "Fase 1 — Ingestão de dados",
-      "blockers": ["T-004"],
+      "blockers": [],
       "estimated_hours": 2
-    },
-    {
-      "id": "T-011",
-      "title": "Implementar upload-images-r2.ts — baixa thumb, converte para WebP, faz upload R2",
-      "priority": 3,
-      "phase": "Fase 1 — Ingestão de dados",
-      "blockers": ["T-004"],
-      "estimated_hours": 1.5
-    },
-    {
-      "id": "T-012",
-      "title": "Implementar seed-db.ts — insere drinks no Postgres",
-      "priority": 4,
-      "phase": "Fase 1 — Ingestão de dados",
-      "blockers": ["T-004"],
-      "estimated_hours": 1
     },
     {
       "id": "T-020",
       "title": "Criar src/lib/seo/metadata.ts com helpers tipados",
-      "priority": 5,
+      "priority": 2,
       "phase": "Fase 2 — SEO core",
-      "blockers": ["T-001"],
+      "blockers": ["T-013"],
       "estimated_hours": 1
     }
   ],
   "session_log": [
     {
-      "timestamp": "2026-05-12T20:45:00Z",
+      "timestamp": "2026-05-13T20:35:00Z",
       "agent": "claude-code",
-      "action": "initialized",
-      "task_id": null,
-      "files_changed": [
-        "CLAUDE.md",
-        "AGENT_STATE.json",
-        "docs/AGENT_STATE_SCHEMA.md",
-        "docs/CACHE.md"
-      ]
-    },
-    {
-      "timestamp": "2026-05-13T00:35:00Z",
-      "agent": "claude-code",
-      "action": "completed_tasks",
-      "task_id": "T-001,T-002,T-003,T-005,T-006,T-007",
+      "action": "completed_task",
+      "task_id": "T-013",
       "files_changed": [
         "package.json",
-        ".env.local",
-        "src/utils/supabase/server.ts",
-        "src/utils/supabase/client.ts",
-        "src/utils/supabase/middleware.ts",
-        "middleware.ts",
-        ".prettierrc.json",
-        ".eslintrc.json",
-        ".lintstagedrc.json",
-        "vitest.config.ts",
-        "tests/setup.ts",
-        "tests/unit/example.test.ts",
-        "playwright.config.ts",
-        "tests/e2e/homepage.spec.ts",
-        ".github/workflows/ci.yml"
+        "scripts/enrich-with-ai.js",
+        "scripts/enrich-with-ai.ts",
+        "scripts/collect-enrichment.js",
+        "scripts/collect-enrichment.ts",
+        "scripts/seed-db.js",
+        "scripts/data/raw/batch-ids.json"
       ],
-      "notes": "Phase 0 setup complete."
-    },
-    {
-      "timestamp": "2026-05-13T15:36:00Z",
-      "agent": "antigravity",
-      "action": "security_and_token_audit",
-      "task_id": null,
-      "files_changed": [
-        "middleware.ts",
-        "src/utils/supabase/middleware.ts",
-        "next.config.ts",
-        "app/layout.tsx",
-        "package.json",
-        ".env",
-        ".env.local",
-        ".gitignore",
-        "CLAUDE.md",
-        "supabase/migrations/001_initial_schema.sql",
-        "supabase/migrations/002_rls_policies.sql",
-        "docs/RATE_LIMIT_SPEC.md"
-      ],
-      "notes": "Full audit: fixed auth middleware (was no-op), added security headers, fixed package.json deps, refactored CLAUDE.md (24KB->8KB), created RLS policies, deleted redundant SESSION_SUMMARY.md and broken src/lib/auth.ts"
+      "notes": "T-013 complete. Anthropic Batches API pipeline for enrichment. Ready for production use with valid ANTHROPIC_API_KEY."
     }
   ],
   "cache_keys": [
@@ -199,5 +150,5 @@
     "arch_ssg_strategy",
     "pricing_model"
   ],
-  "status": "T-010/T-011/T-012 complete. Data pipeline ready: 425 drinks ingested, 425 images downloaded, seed script ready. Next: T-013 (AI enrichment for PT/ES descriptions)."
+  "status": "T-013 complete. AI enrichment pipeline ready (Batches API). Next: T-014 (embeddings generation) or Phase 2 SEO pages."
 }
