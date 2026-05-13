@@ -1,9 +1,14 @@
 import * as fs from 'fs'
 import * as path from 'path'
-import { slugify } from '../src/lib/seo/slugify.ts'
+import { fileURLToPath } from 'url'
+import { dirname } from 'path'
+import { slugify } from '../src/lib/seo/slugify.js'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 
 const COCKTAILDB_URL = 'https://www.thecocktaildb.com/api/json/v1/1'
-const OUTPUT_DIR = path.join(import.meta.dirname, 'data', 'raw')
+const OUTPUT_DIR = path.join(__dirname, 'data', 'raw')
 const OUTPUT_FILE = path.join(OUTPUT_DIR, 'cocktails.json')
 
 interface CocktailDBDrink {
@@ -54,15 +59,6 @@ interface ProcessedDrink {
 if (!fs.existsSync(OUTPUT_DIR)) {
   fs.mkdirSync(OUTPUT_DIR, { recursive: true })
   console.log(`✓ Created output directory: ${OUTPUT_DIR}`)
-}
-
-function slugify(text: string): string {
-  return text
-    .toLowerCase()
-    .trim()
-    .replace(/[^\w\s-]/g, '')
-    .replace(/\s+/g, '-')
-    .replace(/-+/g, '-')
 }
 
 function normalizeAmount(measure: string | null): number | null {

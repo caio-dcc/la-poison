@@ -8,11 +8,21 @@ const __dirname = dirname(__filename)
 
 // Read data files
 const cocktailsPath = path.join(__dirname, 'data', 'raw', 'cocktails.json')
+const enrichedCocktailsPath = path.join(__dirname, 'data', 'raw', 'cocktails-enriched.json')
 const ingredientsPath = path.join(__dirname, 'data', 'i18n', 'ingredients.json')
 const categoriesPath = path.join(__dirname, 'data', 'i18n', 'categories.json')
 const imageMapPath = path.join(__dirname, 'data', 'raw', 'image-map.json')
 
-const cocktails = JSON.parse(fs.readFileSync(cocktailsPath, 'utf-8'))
+// Use enriched data if available, otherwise use original
+let cocktails
+if (fs.existsSync(enrichedCocktailsPath)) {
+  console.log('📚 Using enriched cocktails (PT/EN/ES descriptions)...')
+  cocktails = JSON.parse(fs.readFileSync(enrichedCocktailsPath, 'utf-8'))
+} else {
+  console.log('📚 Using original cocktails (enrichment pending)...')
+  cocktails = JSON.parse(fs.readFileSync(cocktailsPath, 'utf-8'))
+}
+
 const ingredientsDict = JSON.parse(fs.readFileSync(ingredientsPath, 'utf-8'))
 const categoriesDict = JSON.parse(fs.readFileSync(categoriesPath, 'utf-8'))
 const imageMap = JSON.parse(fs.readFileSync(imageMapPath, 'utf-8'))
@@ -103,7 +113,22 @@ async function seedDatabase() {
         thumb_url: imageMap[drink.slug] || drink.thumb_url,
         instructions_en: drink.instructions_en,
         instructions_es: drink.instructions_es,
-        instructions_pt: null, // To be filled by T-013 (enrich-with-ai)
+        instructions_pt: drink.instructions_pt || null,
+        description_en: drink.description_en || null,
+        description_pt: drink.description_pt || null,
+        description_es: drink.description_es || null,
+        history_en: drink.history_en || null,
+        history_pt: drink.history_pt || null,
+        history_es: drink.history_es || null,
+        fun_fact_en: drink.fun_fact_en || null,
+        fun_fact_pt: drink.fun_fact_pt || null,
+        fun_fact_es: drink.fun_fact_es || null,
+        meta_title_en: drink.meta_title_en || drink.name,
+        meta_title_pt: drink.meta_title_pt || drink.name,
+        meta_title_es: drink.meta_title_es || drink.name,
+        meta_desc_en: drink.meta_desc_en || '',
+        meta_desc_pt: drink.meta_desc_pt || '',
+        meta_desc_es: drink.meta_desc_es || '',
       }
 
       // Mock insert
