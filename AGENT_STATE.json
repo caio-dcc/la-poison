@@ -3,8 +3,8 @@
   "last_updated": "2026-05-13T23:15:00Z",
   "last_agent": "claude-code",
   "current_task": {
-    "id": "T-024",
-    "title": "Implementar i18n (PT/EN/ES) em todas as rotas",
+    "id": "T-025",
+    "title": "Implementar Dynamic Sitemap (app/sitemap.ts)",
     "status": "pending",
     "started_at": null
   },
@@ -145,19 +145,45 @@
       "agent": "claude-code",
       "commit_sha": "af1f5b4",
       "notes": "Dynamic ISR drinks listing page with real-time search and multi-filter system. app/drinks/page.tsx (ISR 1h revalidation) + src/components/drinks/DrinksSearch.tsx (client-side filtering). Supports category, difficulty, ABV range, prep time filters. Sorting by name, difficulty, ABV. REST API calls to avoid cookies() at build time. Collection + Breadcrumb schemas. Responsive 4-column grid."
+    },
+    {
+      "id": "T-024",
+      "title": "Implementar i18n (PT/EN/ES) em todas as rotas",
+      "completed_at": "2026-05-13T23:45:00Z",
+      "agent": "claude-code",
+      "commit_sha": "6699abf",
+      "notes": "LanguageContext + useLanguage hook for global state. Dictionaries for PT/EN/ES (all UI strings). LanguageProvider wraps app via RootLayoutWrapper. LanguageSelector (flag buttons) in navbar. localStorage persistence + browser language detection. DrinksSearch updated to consume dict. Graceful SSG fallback to PT. useRef pattern for hydration safety."
     }
   ],
   "tasks_queue": [
     {
-      "id": "T-024",
-      "title": "Implementar i18n (PT/EN/ES) em todas as rotas",
+      "id": "T-025",
+      "title": "Implementar Dynamic Sitemap (app/sitemap.ts)",
       "priority": 1,
-      "phase": "Fase 3 — i18n + SEO",
+      "phase": "Fase 3 — SEO Core",
       "blockers": [],
-      "estimated_hours": 8
+      "estimated_hours": 1
     }
   ],
   "session_log": [
+    {
+      "timestamp": "2026-05-13T23:45:00Z",
+      "agent": "claude-code",
+      "action": "completed_task",
+      "task_id": "T-024",
+      "files_changed": [
+        "app/layout.tsx",
+        "app/drinks/page.tsx",
+        "app/drinks/ingredient/[slug]/page.tsx",
+        "src/components/drinks/DrinksSearch.tsx",
+        "src/components/LanguageSelector.tsx",
+        "src/components/RootLayoutWrapper.tsx",
+        "src/contexts/LanguageContext.tsx",
+        "src/hooks/useLanguage.ts",
+        "src/lib/i18n/dictionaries.ts"
+      ],
+      "notes": "T-024 complete. i18n (PT/EN/ES) system with context, hooks, dictionaries, navbar selector. Build successful, all pages prerendered. Commit: 6699abf"
+    },
     {
       "timestamp": "2026-05-13T23:15:00Z",
       "agent": "claude-code",
@@ -255,5 +281,5 @@
     "arch_ssg_strategy",
     "pricing_model"
   ],
-  "status": "T-023 complete. Drinks listing page with filters/search ready. Next: T-024 (i18n implementation)."
+  "status": "T-024 complete. i18n (PT/EN/ES) system ready across all routes. Next: T-025 (Dynamic Sitemap)."
 }
