@@ -3,8 +3,8 @@
   "last_updated": "2026-05-13T23:15:00Z",
   "last_agent": "claude-code",
   "current_task": {
-    "id": "T-027",
-    "title": "Implementar OG Image Generation (app/api/og/[slug]/route.tsx)",
+    "id": "T-029",
+    "title": "Executar Lighthouse Audit e otimizar Core Web Vitals",
     "status": "pending",
     "started_at": null
   },
@@ -169,16 +169,32 @@
       "agent": "claude-code",
       "commit_sha": "03ee0d8",
       "notes": "app/robots.ts exports MetadataRoute.Robots. Allow: /, Disallow: /api/, /(app)/, /conta, /chatbot. Sitemap pointer to /sitemap.xml. Build succeeds, robots.txt route prerendered."
+    },
+    {
+      "id": "T-027",
+      "title": "Implementar OG Image Generation (app/api/og/[slug]/route.tsx)",
+      "completed_at": "2026-05-13T18:08:00Z",
+      "agent": "claude-code",
+      "commit_sha": "3805b3a",
+      "notes": "OG image generation via @vercel/og for drink recipes. 1200×630 images with drink name, category, gradient background, thumb overlay. Implemented in T-021 along with SSG drink detail page."
+    },
+    {
+      "id": "T-028",
+      "title": "Implementar i18n (PT/EN/ES)",
+      "completed_at": "2026-05-13T23:45:00Z",
+      "agent": "claude-code",
+      "commit_sha": "6699abf",
+      "notes": "Already completed as T-024. Global i18n system with LanguageContext, dictionaries, navbar selector, localStorage persistence, browser language detection."
     }
   ],
   "tasks_queue": [
     {
-      "id": "T-027",
-      "title": "Implementar OG Image Generation (app/api/og/[slug]/route.tsx)",
+      "id": "T-029",
+      "title": "Executar Lighthouse Audit e otimizar Core Web Vitals",
       "priority": 1,
       "phase": "Fase 3 — SEO Core",
       "blockers": [],
-      "estimated_hours": 1.5
+      "estimated_hours": 1
     }
   ],
   "session_log": [
@@ -313,5 +329,5 @@
     "arch_ssg_strategy",
     "pricing_model"
   ],
-  "status": "T-026 complete. robots.txt configured. Next: T-027 (OG Image Generation)."
+  "status": "T-026 complete. robots.txt configured. T-027 & T-028 already complete (OG images & i18n). Next: T-029 (Lighthouse Audit)."
 }
