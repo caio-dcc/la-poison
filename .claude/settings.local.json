@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm --version)",
+      "Bash(npx create-next-app@latest . --typescript --tailwind --eslint --app --no-git --import-alias \"@/*\" --skip-install)",
+      "Bash(mkdir -p /tmp/backup)",
+      "Bash(cp AGENT_STATE.json CLAUDE.md /tmp/backup/)",
+      "Bash(cp /tmp/backup/CLAUDE.md /tmp/backup/AGENT_STATE.json .)",
+      "Bash(npm install *)",
+      "Bash(npx prisma *)",
+      "Bash(npm run *)",
+      "Bash(curl -s http://localhost:3000)",
+      "Bash(npx husky *)",
+      "Bash(git init *)",
+      "Bash(git config *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000)",
+      "Bash(npm test *)",
+      "Bash(npm ls *)",
+      "Bash(git add *)",
+      "Bash(git commit -m 'setup: initialize Next.js 14 project with testing and CI *)"
+    ]
+  }
+}
