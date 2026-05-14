@@ -1,6 +1,12 @@
 import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
+  images: {
+    remotePatterns: [
+      { protocol: 'https', hostname: 'www.thecocktaildb.com' },
+      { protocol: 'https', hostname: '**.r2.cloudflarestorage.com' },
+    ],
+  },
   async headers() {
     return [
       {

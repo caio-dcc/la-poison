@@ -15,6 +15,8 @@ interface Ingredient {
   updated_at?: string
 }
 
+const LOCALES = ['pt', 'en', 'es']
+
 async function getAllCocktails(): Promise<Cocktail[]> {
   try {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -116,69 +118,69 @@ function slugify(text: string): string {
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 
-  // Fetch data in parallel
   const [cocktails, categories, ingredients] = await Promise.all([
     getAllCocktails(),
     getAllCategories(),
     getAllIngredients(),
   ])
 
-  const sitemapEntries: MetadataRoute.Sitemap = [
-    // Home page
-    {
-      url: `${baseUrl}/`,
+  const sitemapEntries: MetadataRoute.Sitemap = []
+
+  for (const locale of LOCALES) {
+    // Home pages (one per locale)
+    sitemapEntries.push({
+      url: `${baseUrl}/${locale}`,
       lastModified: new Date(),
       changeFrequency: 'weekly',
       priority: 1.0,
-    },
+    })
+
     // Drinks listing
-    {
-      url: `${baseUrl}/drinks`,
+    sitemapEntries.push({
+      url: `${baseUrl}/${locale}/drinks`,
       lastModified: new Date(),
       changeFrequency: 'daily',
       priority: 0.9,
-    },
+    })
+
     // Individual drinks
-    ...cocktails.map(cocktail => ({
-      url: `${baseUrl}/drinks/${cocktail.slug}`,
-      lastModified: cocktail.updated_at ? new Date(cocktail.updated_at) : new Date(),
-      changeFrequency: 'weekly' as const,
-      priority: 0.8,
-    })),
+    cocktails.forEach(cocktail => {
+      sitemapEntries.push({
+        url: `${baseUrl}/${locale}/drinks/${cocktail.slug}`,
+        lastModified: cocktail.updated_at ? new Date(cocktail.updated_at) : new Date(),
+        changeFrequency: 'weekly' as const,
+        priority: 0.8,
+      })
+    })
+
     // Category pages
-    ...categories.map(category => ({
-      url: `${baseUrl}/drinks/category/${slugify(category.name)}`,
-      lastModified: category.updated_at ? new Date(category.updated_at) : new Date(),
-      changeFrequency: 'weekly' as const,
-      priority: 0.7,
-    })),
+    categories.forEach(category => {
+      sitemapEntries.push({
+        url: `${baseUrl}/${locale}/drinks/category/${slugify(category.name)}`,
+        lastModified: category.updated_at ? new Date(category.updated_at) : new Date(),
+        changeFrequency: 'weekly' as const,
+        priority: 0.7,
+      })
+    })
+
     // Ingredient pages
-    ...ingredients.map(ingredient => ({
-      url: `${baseUrl}/drinks/ingredient/${slugify(ingredient.name)}`,
-      lastModified: ingredient.updated_at ? new Date(ingredient.updated_at) : new Date(),
-      changeFrequency: 'weekly' as const,
-      priority: 0.7,
-    })),
-    // Static pages
-    {
-      url: `${baseUrl}/about`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.5,
-    },
-    {
-      url: `${baseUrl}/pricing`,
+    ingredients.forEach(ingredient => {
+      sitemapEntries.push({
+        url: `${baseUrl}/${locale}/drinks/ingredient/${slugify(ingredient.name)}`,
+        lastModified: ingredient.updated_at ? new Date(ingredient.updated_at) : new Date(),
+        changeFrequency: 'weekly' as const,
+        priority: 0.7,
+      })
+    })
+
+    // Pricing
+    sitemapEntries.push({
+      url: `${baseUrl}/${locale}/pricing`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.6,
-    },
-    {
-      url: `${baseUrl}/community`,
-      lastModified: new Date(),
-      changeFrequency: 'daily',
-      priority: 0.7,
-    },
-  ]
+    })
+  }
 
   return sitemapEntries
 }

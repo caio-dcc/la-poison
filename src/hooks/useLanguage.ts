@@ -6,21 +6,8 @@ import { getDictionary } from '@/lib/i18n/dictionaries'
 
 export function useLanguage() {
   const context = useContext(LanguageContext)
-
-  if (!context) {
-    return {
-      language: 'pt' as const,
-      setLanguage: () => {},
-      dict: getDictionary('pt'),
-    }
-  }
-
-  const { language, setLanguage } = context
+  const language = context?.language ?? 'pt'
+  const setLanguage = context?.setLanguage ?? (() => {})
   const dict = getDictionary(language)
-
-  return {
-    language,
-    setLanguage,
-    dict,
-  }
+  return { language, setLanguage, dict }
 }

@@ -17,6 +17,18 @@ interface Cocktail {
   thumb_url: string
 }
 
+const localeToLang = {
+  pt: 'pt-BR',
+  en: 'en-US',
+  es: 'es-ES',
+}
+
+const pageLabels = {
+  pt: { home: 'Home', drinks: 'Drinks', cocktails: 'Coquetéis', recipes: 'receita' },
+  en: { home: 'Home', drinks: 'Drinks', cocktails: 'Cocktails', recipes: 'recipe' },
+  es: { home: 'Inicio', drinks: 'Bebidas', cocktails: 'Cócteles', recipes: 'receta' },
+}
+
 export const dynamicParams = false
 export const revalidate = 3600
 
@@ -84,16 +96,26 @@ function formatCategoryName(slug: string): string {
 
 export async function generateStaticParams() {
   const slugs = await getAllCategories()
-  return slugs.map(slug => ({ slug }))
+  const locales = ['pt', 'en', 'es']
+  const params: Array<{ locale: string; slug: string }> = []
+  for (const locale of locales) {
+    for (const slug of slugs) {
+      params.push({ locale, slug })
+    }
+  }
+  return params
 }
 
-export async function generateMetadata(
-  { params }: { params: Promise<{ slug: string }> },
-  _parent: ResolvingMetadata
-): Promise<Metadata> {
-  const { slug } = await params
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string; slug: string }>
+}): Promise<Metadata> {
+  const { locale, slug } = await params
   const cocktails = await getCocktailsByCategory(slug)
   const categoryName = formatCategoryName(slug)
+  const localeKey = locale as keyof typeof localeToLang
+  const lang = (localeToLang[localeKey] || 'pt-BR') as 'pt-BR' | 'en-US' | 'es-ES'
 
   if (!cocktails.length) {
     return {
@@ -102,7 +124,7 @@ export async function generateMetadata(
   }
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-  const pathname = `/drinks/category/${slug}`
+  const pathname = `/${locale}/drinks/category/${slug}`
   const description = truncateDescription(
     `${cocktails.length} ${categoryName} cocktails and recipes`
   )
@@ -118,7 +140,7 @@ export async function generateMetadata(
         width: 1200,
         height: 630,
       },
-      locale: 'pt-BR',
+      locale: lang,
       type: 'website',
       tags: [categoryName],
     },
@@ -126,20 +148,24 @@ export async function generateMetadata(
   )
 }
 
-export default async function CategoryPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params
+export default async function CategoryPage({
+  params,
+}: {
+  params: Promise<{ locale: string; slug: string }>
+}) {
+  const { locale, slug } = await params
   const cocktails = await getCocktailsByCategory(slug)
   const categoryName = formatCategoryName(slug)
+  const labels = pageLabels[locale as keyof typeof pageLabels] || pageLabels.pt
 
   if (!cocktails.length) {
     notFound()
   }
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-  const pathname = `/drinks/category/${slug}`
+  const pathname = `/${locale}/drinks/category/${slug}`
   const canonicalUrl = buildCanonicalUrl(pathname)
 
-  // Build Collection schema
   const collectionSchema = generateCollectionSchema({
     name: `${categoryName} Cocktails`,
     description: `Explore ${cocktails.length} ${categoryName} cocktails and recipes`,
@@ -148,53 +174,50 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
     itemCount: cocktails.length,
   })
 
-  // Build Breadcrumb schema
   const breadcrumbSchema = generateBreadcrumbSchema({
     items: [
-      { name: 'Home', url: baseUrl, position: 1 },
-      { name: 'Drinks', url: `${baseUrl}/drinks`, position: 2 },
+      { name: labels.home, url: `${baseUrl}/${locale}`, position: 1 },
+      { name: labels.drinks, url: `${baseUrl}/${locale}/drinks`, position: 2 },
       { name: categoryName, url: canonicalUrl, position: 3 },
     ],
   })
 
-  // Merge schemas
   const jsonLd = mergeJsonLdSchemas(collectionSchema, breadcrumbSchema)
 
   return (
     <main className="min-h-screen bg-porcelain py-8 px-4">
       <div className="max-w-6xl mx-auto">
-        {/* Breadcrumbs */}
         <nav className="mb-8 text-sm text-shadow-grey">
-          <Link href="/" className="hover:underline">
-            Home
+          <Link href={`/${locale}`} className="hover:underline">
+            {labels.home}
           </Link>
           {' / '}
-          <Link href="/drinks" className="hover:underline">
-            Drinks
+          <Link href={`/${locale}/drinks`} className="hover:underline">
+            {labels.drinks}
           </Link>
           {' / '}
           <span className="font-medium">{categoryName}</span>
         </nav>
 
-        {/* Header */}
         <div className="mb-12">
           <h1 className="text-4xl md:text-5xl font-bold text-evergreen mb-4">
-            {categoryName} Cocktails
+            {categoryName} {labels.cocktails}
           </h1>
           <p className="text-xl text-hunter-green">
-            {cocktails.length} recipe{cocktails.length !== 1 ? 's' : ''}
+            {cocktails.length} {labels.recipes}
+            {cocktails.length !== 1 ? 's' : ''}
           </p>
         </div>
 
-        {/* Cocktails Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {cocktails.map(cocktail => (
             <Link
               key={cocktail.id}
-              href={`/drinks/${cocktail.slug}`}
+              href={`/${locale}/drinks/${cocktail.slug}`}
               className="group bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-lg transition-shadow"
             >
               <div className="relative aspect-square overflow-hidden bg-gray-200">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={cocktail.thumb_url}
                   alt={cocktail.name}
@@ -211,7 +234,6 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
           ))}
         </div>
 
-        {/* Schema */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

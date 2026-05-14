@@ -1,10 +1,10 @@
 {
   "version": "1.0",
-  "last_updated": "2026-05-13T21:13:53.332Z",
+  "last_updated": "2026-05-14T05:30:00.000Z",
   "last_agent": "claude-code",
   "current_task": {
-    "id": "T-032",
-    "title": "Criar página de pricing com 3 planos",
+    "id": "T-033",
+    "title": "Implementar chatbot UI (streaming, rate limiting, paywall)",
     "status": "pending",
     "started_at": null
   },
@@ -203,6 +203,14 @@
       "notes": "All 11 API route files implemented. POST /api/auth/login, GET/POST /api/bar, GET/PUT/DELETE /api/bar/[id], GET/POST /api/bar/[id]/inventory, PUT/DELETE /api/bar/[id]/inventory/[itemId], POST /api/bar/[id]/share, DELETE /api/bar/[id]/share/[userId], GET/POST /api/ingredients, GET /api/ingredients/[id], GET /api/cocktails, GET /api/cocktails/[id]. src/types/api.ts created with all TypeScript interfaces. Fixed LanguageContext hydration flick. All endpoints tested: auth returns 401, bar returns 401 (auth required), cocktails/ingredients return JSON. Build passes, linting passes."
     },
     {
+      "id": "T-032",
+      "title": "Criar página de pricing com 3 planos",
+      "completed_at": "2026-05-14T05:30:00.000Z",
+      "agent": "claude-code",
+      "commit_sha": null,
+      "notes": "Pricing page with 3 plans (Free/Pro R$19.90/mo/Pro Annual R$159). FAQ section, breadcrumb schema. Pricing link added to navbar."
+    },
+    {
       "id": "T-031",
       "title": "Criar página de login/signup com Supabase Auth",
       "completed_at": "2026-05-13T21:13:53.331Z",
@@ -213,23 +221,33 @@
   ],
   "tasks_queue": [
     {
-      "id": "T-031",
-      "title": "Criar página de login/signup com Supabase Auth",
+      "id": "T-033",
+      "title": "Implementar chatbot UI (streaming, rate limiting, paywall)",
       "priority": 1,
-      "phase": "Fase 4 — Auth + Pricing",
-      "blockers": [],
-      "estimated_hours": 1.5
-    },
-    {
-      "id": "T-032",
-      "title": "Criar página de pricing com 3 planos",
-      "priority": 2,
-      "phase": "Fase 4 — Auth + Pricing",
-      "blockers": [],
-      "estimated_hours": 1.5
+      "phase": "Fase 5 — Chatbot",
+      "blockers": ["T-032"],
+      "estimated_hours": 4
     }
   ],
   "session_log": [
+    {
+      "timestamp": "2026-05-14T05:30:00.000Z",
+      "agent": "claude-code",
+      "action": "completed_task",
+      "task_id": "T-032",
+      "files_changed": [
+        "app/pricing/page.tsx",
+        "src/components/RootLayoutWrapper.tsx",
+        "src/components/auth/LoginForm.tsx",
+        "src/components/auth/SignupForm.tsx",
+        "src/components/LanguageSelector.tsx",
+        "src/hooks/useLanguage.ts",
+        "src/utils/supabase/server.ts",
+        "src/components/drinks/IngredientsCard.tsx",
+        "app/drinks/[slug]/page.tsx"
+      ],
+      "notes": "T-032 complete. Pricing page with Free/Pro/Pro Annual plans, FAQ, breadcrumb schema. Also: fixed LanguageSelector to segmented buttons, fixed cocktail_ingredients RLS by using service key server-side, seeded 675 ingredient relationships, added oz/ml toggle to drink detail page."
+    },
     {
       "timestamp": "2026-05-13T21:13:53.332Z",
       "agent": "claude-code",

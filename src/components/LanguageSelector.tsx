@@ -1,32 +1,42 @@
 'use client'
 
-import { useLanguage } from '@/hooks/useLanguage'
-import type { Language } from '@/contexts/LanguageContext'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 
-const languages: { code: Language; label: string; flag: string }[] = [
-  { code: 'pt', label: 'Português', flag: '🇧🇷' },
-  { code: 'en', label: 'English', flag: '🇺🇸' },
-  { code: 'es', label: 'Español', flag: '🇪🇸' },
+const languages = [
+  { code: 'pt', flag: '🇧🇷', label: 'PT' },
+  { code: 'en', flag: '🇬🇧', label: 'EN' },
+  { code: 'es', flag: '🇪🇸', label: 'ES' },
 ]
 
-export function LanguageSelector() {
-  const { language, setLanguage } = useLanguage()
+export function LanguageSelector({ currentLocale }: { currentLocale: string }) {
+  const pathname = usePathname()
+
+  const getLocaleUrl = (locale: string) => {
+    const parts = pathname.split('/')
+    if (parts[1] && ['pt', 'en', 'es'].includes(parts[1])) {
+      parts[1] = locale
+    } else {
+      parts.splice(1, 0, locale)
+    }
+    return parts.join('/')
+  }
 
   return (
-    <div className="flex gap-2">
+    <div className="flex items-center gap-1 rounded-lg border border-porcelain/20 overflow-hidden">
       {languages.map(lang => (
-        <button
+        <Link
           key={lang.code}
-          onClick={() => setLanguage(lang.code)}
-          className={`px-3 py-1 rounded text-sm transition-colors ${
-            language === lang.code
-              ? 'bg-evergreen text-porcelain font-medium'
-              : 'bg-gray-200 text-shadow-grey hover:bg-gray-300'
+          href={getLocaleUrl(lang.code)}
+          className={`flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold transition-colors ${
+            currentLocale === lang.code
+              ? 'bg-porcelain text-evergreen'
+              : 'text-porcelain/60 hover:text-porcelain hover:bg-porcelain/10'
           }`}
-          title={lang.label}
         >
-          {lang.flag}
-        </button>
+          <span>{lang.flag}</span>
+          <span className="hidden sm:inline">{lang.label}</span>
+        </Link>
       ))}
     </div>
   )

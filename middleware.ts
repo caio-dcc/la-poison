@@ -1,16 +1,49 @@
 import { createClient } from '@/utils/supabase/middleware'
 import { type NextRequest, NextResponse } from 'next/server'
 
-// Routes that require authentication (real pathnames, not route groups)
+const SUPPORTED_LOCALES = ['pt', 'en', 'es']
+const DEFAULT_LOCALE = 'pt'
+
+// Routes that require authentication (relative to locale, e.g., /[locale]/chatbot)
 const PROTECTED_PREFIXES = ['/chatbot', '/meus-bares', '/inventario', '/conta']
+
+function getLocaleFromPathname(pathname: string): string {
+  const parts = pathname.split('/')
+  const locale = parts[1]
+  return SUPPORTED_LOCALES.includes(locale) ? locale : DEFAULT_LOCALE
+}
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
+  const locale = getLocaleFromPathname(pathname)
+
+  // Redirect root to default locale
+  if (pathname === '/') {
+    const acceptLanguage = request.headers.get('accept-language') || ''
+    let preferredLocale = DEFAULT_LOCALE
+
+    for (const supportedLocale of SUPPORTED_LOCALES) {
+      if (acceptLanguage.includes(supportedLocale)) {
+        preferredLocale = supportedLocale
+        break
+      }
+    }
+
+    return NextResponse.redirect(new URL(`/${preferredLocale}`, request.url))
+  }
+
+  // Add locale prefix if missing
+  if (!SUPPORTED_LOCALES.includes(pathname.split('/')[1])) {
+    return NextResponse.redirect(new URL(`/${DEFAULT_LOCALE}${pathname}`, request.url))
+  }
 
   // Refresh Supabase session for every matched request
   const { response, supabase } = await createClient(request)
 
-  const isProtectedRoute = PROTECTED_PREFIXES.some(prefix => pathname.startsWith(prefix))
+  // Check protected routes (with locale prefix)
+  const isProtectedRoute = PROTECTED_PREFIXES.some(prefix =>
+    pathname.startsWith(`/${locale}${prefix}`)
+  )
 
   if (isProtectedRoute) {
     const {
@@ -18,7 +51,7 @@ export async function middleware(request: NextRequest) {
     } = await supabase.auth.getUser()
 
     if (!user) {
-      const loginUrl = new URL('/login', request.url)
+      const loginUrl = new URL(`/${locale}/login`, request.url)
       loginUrl.searchParams.set('redirect', pathname)
       return NextResponse.redirect(loginUrl)
     }

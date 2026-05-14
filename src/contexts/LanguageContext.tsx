@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useState, ReactNode, useCallback } from 'react'
+import { createContext, useState, useEffect, ReactNode, useCallback } from 'react'
 
 export type Language = 'pt' | 'en' | 'es'
 
@@ -11,24 +11,28 @@ interface LanguageContextType {
 
 export const LanguageContext = createContext<LanguageContextType | undefined>(undefined)
 
-function getInitialLanguage(): Language {
-  if (typeof window === 'undefined') return 'pt'
+function getStoredLanguage(): Language {
   const stored = localStorage.getItem('language') as Language | null
-  if (stored && ['pt', 'en', 'es'].includes(stored)) {
-    return stored
-  }
+  if (stored && ['pt', 'en', 'es'].includes(stored)) return stored
   const browserLang = navigator.language.split('-')[0]
   return browserLang === 'es' ? 'es' : browserLang === 'en' ? 'en' : 'pt'
 }
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [language, setLanguageState] = useState<Language>(() => getInitialLanguage())
+  // Always start with 'pt' to match SSR, then hydrate from localStorage
+  const [language, setLanguageState] = useState<Language>('pt')
+
+  useEffect(() => {
+    const stored = getStoredLanguage()
+    if (stored !== 'pt') {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setLanguageState(stored)
+    }
+  }, [])
 
   const setLanguage = useCallback((lang: Language) => {
     setLanguageState(lang)
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('language', lang)
-    }
+    localStorage.setItem('language', lang)
   }, [])
 
   return (

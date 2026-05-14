@@ -4,23 +4,55 @@ import Link from 'next/link'
 import { LanguageProvider } from '@/contexts/LanguageContext'
 import { LanguageSelector } from '@/components/LanguageSelector'
 
-function Header() {
+function Header({ locale }: { locale: string }) {
+  const navigationLabels = {
+    pt: { drinks: 'Drinks', pricing: 'Preços' },
+    en: { drinks: 'Drinks', pricing: 'Pricing' },
+    es: { drinks: 'Bebidas', pricing: 'Precios' },
+  }
+
+  const labels = navigationLabels[locale as keyof typeof navigationLabels] || navigationLabels.pt
+
   return (
-    <header className="border-b border-gray-200 bg-porcelain">
-      <nav className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-        <Link href="/" className="font-bold text-xl text-evergreen">
-          LaPoison
-        </Link>
-        <LanguageSelector />
+    <header className="border-b border-evergreen/20 bg-evergreen sticky top-0 z-50">
+      <nav className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+        <div className="flex items-center gap-8">
+          <Link
+            href={`/${locale}`}
+            className="font-bold text-xl text-porcelain tracking-wide"
+            style={{ fontFamily: 'var(--font-merriweather)' }}
+          >
+            LaPoison
+          </Link>
+          <Link
+            href={`/${locale}/drinks`}
+            className="text-sm text-porcelain/80 hover:text-porcelain transition-colors"
+          >
+            {labels.drinks}
+          </Link>
+          <Link
+            href={`/${locale}/pricing`}
+            className="text-sm text-porcelain/80 hover:text-porcelain transition-colors"
+          >
+            {labels.pricing}
+          </Link>
+        </div>
+        <LanguageSelector currentLocale={locale} />
       </nav>
     </header>
   )
 }
 
-export function RootLayoutWrapper({ children }: { children: React.ReactNode }) {
+export function RootLayoutWrapper({
+  children,
+  locale,
+}: {
+  children: React.ReactNode
+  locale: string
+}) {
   return (
     <LanguageProvider>
-      <Header />
+      <Header locale={locale} />
       {children}
     </LanguageProvider>
   )
