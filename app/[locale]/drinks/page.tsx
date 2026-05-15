@@ -140,9 +140,9 @@ async function getFilterOptions(): Promise<FilterOptions> {
 export async function generateMetadata({
   params,
 }: {
-  params: { locale: string }
+  params: Promise<{ locale: string }>
 }): Promise<Metadata> {
-  const locale = params.locale as string
+  const { locale } = await params
   const labels = pageLabels[locale as keyof typeof pageLabels] || pageLabels.pt
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
   const pathname = `/${locale}/drinks`
@@ -160,8 +160,8 @@ export async function generateMetadata({
   )
 }
 
-export default async function DrinksPage({ params }: { params: { locale: string } }) {
-  const locale = params.locale
+export default async function DrinksPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params
   const labels = pageLabels[locale as keyof typeof pageLabels] || pageLabels.pt
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
   const pathname = `/${locale}/drinks`

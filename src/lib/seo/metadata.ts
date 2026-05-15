@@ -1,5 +1,14 @@
 import type { Metadata, ResolvingMetadata } from 'next'
 
+function replaceLocaleInPathname(pathname: string, locale: string): string {
+  const parts = pathname.split('/')
+  if (['pt', 'en', 'es'].includes(parts[1])) {
+    parts[1] = locale
+    return parts.join('/')
+  }
+  return `/${locale}${pathname}`
+}
+
 export interface SEOMetadataParams {
   title: string
   description: string
@@ -89,9 +98,9 @@ export function generateSEOMetadata(
     alternates: {
       canonical: canonicalUrl,
       languages: {
-        'pt-BR': new URL(pathname, baseUrl).toString(),
-        'en-US': new URL(`/en${pathname}`, baseUrl).toString(),
-        'es-ES': new URL(`/es${pathname}`, baseUrl).toString(),
+        'pt-BR': new URL(replaceLocaleInPathname(pathname, 'pt'), baseUrl).toString(),
+        'en-US': new URL(replaceLocaleInPathname(pathname, 'en'), baseUrl).toString(),
+        'es-ES': new URL(replaceLocaleInPathname(pathname, 'es'), baseUrl).toString(),
       },
     },
     robots: {
