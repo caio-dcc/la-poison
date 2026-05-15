@@ -1,7 +1,9 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
+import { Suspense } from 'react'
 import { generateSEOMetadata, buildCanonicalUrl } from '@/lib/seo/metadata'
 import { generateBreadcrumbSchema } from '@/lib/seo/jsonld'
+import { PricingClient } from '@/components/pricing/PricingClient'
 
 const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://lapoison.com'
 
@@ -20,6 +22,9 @@ const pageLabels = {
     prices: 'Preços',
     faq: 'Perguntas frequentes',
     footer: 'Pagamentos processados com segurança via Stripe. Cancele a qualquer momento.',
+    successMessage: 'Checkout iniciado com sucesso! Redirecionando...',
+    errorMessage: 'Erro ao processar checkout. Tente novamente.',
+    canceledMessage: 'Checkout cancelado. Sinta-se livre para escolher outro plano.',
   },
   en: {
     title: 'Pricing Plans',
@@ -29,6 +34,9 @@ const pageLabels = {
     prices: 'Prices',
     faq: 'Frequently asked questions',
     footer: 'Payments processed securely via Stripe. Cancel anytime.',
+    successMessage: 'Checkout started successfully! Redirecting...',
+    errorMessage: 'Error processing checkout. Please try again.',
+    canceledMessage: 'Checkout canceled. Feel free to choose another plan.',
   },
   es: {
     title: 'Planes y Precios',
@@ -38,6 +46,9 @@ const pageLabels = {
     prices: 'Precios',
     faq: 'Preguntas frecuentes',
     footer: 'Pagos procesados de forma segura a través de Stripe. Cancela en cualquier momento.',
+    successMessage: '¡Checkout iniciado con éxito! Redirigiendo...',
+    errorMessage: 'Error al procesar el checkout. Intenta de nuevo.',
+    canceledMessage: 'Checkout cancelado. Siéntete libre de elegir otro plan.',
   },
 }
 
@@ -51,7 +62,7 @@ const plans = {
       period: 'para sempre',
       description: 'Para quem quer explorar receitas e experimentar o chatbot.',
       cta: 'Começar grátis',
-      ctaHref: '/signup',
+      priceId: null,
       highlight: false,
       features: [
         'Acesso a 425+ receitas de coquetéis',
@@ -70,7 +81,7 @@ const plans = {
       period: 'por mês',
       description: 'Para entusiastas de coquetelaria que querem o máximo da IA.',
       cta: 'Assinar Pro',
-      ctaHref: '/signup?plan=pro_monthly',
+      priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_MONTHLY,
       highlight: true,
       badge: 'Mais popular',
       trialLabel: '7 dias grátis',
@@ -85,7 +96,7 @@ const plans = {
       missing: [],
     },
     {
-      id: 'pro_annual',
+      id: 'pro_yearly',
       name: 'Pro Anual',
       price: 159,
       priceLabel: 'R$159',
@@ -93,7 +104,7 @@ const plans = {
       monthlyEquiv: 'R$13,25/mês',
       description: 'Melhor custo-benefício. Economize 33% em relação ao plano mensal.',
       cta: 'Assinar Anual',
-      ctaHref: '/signup?plan=pro_annual',
+      priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_ANNUAL,
       highlight: false,
       badge: 'Economize 33%',
       trialLabel: '7 dias grátis',
@@ -110,7 +121,7 @@ const plans = {
       period: 'forever',
       description: 'For those who want to explore recipes and test the chatbot.',
       cta: 'Start free',
-      ctaHref: '/signup',
+      priceId: null,
       highlight: false,
       features: [
         'Access to 425+ cocktail recipes',
@@ -129,7 +140,7 @@ const plans = {
       period: 'per month',
       description: 'For cocktail enthusiasts who want the best of AI.',
       cta: 'Subscribe Pro',
-      ctaHref: '/signup?plan=pro_monthly',
+      priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_MONTHLY,
       highlight: true,
       badge: 'Most popular',
       trialLabel: '7 days free',
@@ -144,7 +155,7 @@ const plans = {
       missing: [],
     },
     {
-      id: 'pro_annual',
+      id: 'pro_yearly',
       name: 'Pro Annual',
       price: 79.99,
       priceLabel: '$79.99',
@@ -152,7 +163,7 @@ const plans = {
       monthlyEquiv: '$6.67/month',
       description: 'Best value. Save 33% compared to monthly plan.',
       cta: 'Subscribe Annual',
-      ctaHref: '/signup?plan=pro_annual',
+      priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_ANNUAL,
       highlight: false,
       badge: 'Save 33%',
       trialLabel: '7 days free',
@@ -173,7 +184,7 @@ const plans = {
       period: 'por siempre',
       description: 'Para quienes quieren explorar recetas y probar el chatbot.',
       cta: 'Comenzar gratis',
-      ctaHref: '/signup',
+      priceId: null,
       highlight: false,
       features: [
         'Acceso a más de 425 recetas de cócteles',
@@ -192,7 +203,7 @@ const plans = {
       period: 'por mes',
       description: 'Para entusiastas de cócteles que quieren lo mejor de la IA.',
       cta: 'Suscribirse Pro',
-      ctaHref: '/signup?plan=pro_monthly',
+      priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_MONTHLY,
       highlight: true,
       badge: 'Más popular',
       trialLabel: '7 días gratis',
@@ -207,7 +218,7 @@ const plans = {
       missing: [],
     },
     {
-      id: 'pro_annual',
+      id: 'pro_yearly',
       name: 'Pro Anual',
       price: 79.99,
       priceLabel: '$79.99',
@@ -215,7 +226,7 @@ const plans = {
       monthlyEquiv: '$6.67/mes',
       description: 'Mejor valor. Ahorra 33% en comparación con el plan mensual.',
       cta: 'Suscribirse Anual',
-      ctaHref: '/signup?plan=pro_annual',
+      priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_ANNUAL,
       highlight: false,
       badge: 'Ahorrar 33%',
       trialLabel: '7 días gratis',
@@ -304,36 +315,6 @@ export async function generateMetadata({
   )
 }
 
-function CheckIcon() {
-  return (
-    <svg
-      className="w-4 h-4 text-hunter-green shrink-0 mt-0.5"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={2.5}
-      aria-hidden="true"
-    >
-      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-    </svg>
-  )
-}
-
-function XIcon() {
-  return (
-    <svg
-      className="w-4 h-4 text-gray-300 shrink-0 mt-0.5"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={2}
-      aria-hidden="true"
-    >
-      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-    </svg>
-  )
-}
-
 export default function PricingPage({ params }: { params: { locale: string } }) {
   const locale = params.locale as string
   const labels = pageLabels[locale as keyof typeof pageLabels] || pageLabels.pt
@@ -364,95 +345,15 @@ export default function PricingPage({ params }: { params: { locale: string } }) 
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-4 py-14">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {planList.map(plan => (
-            <div
-              key={plan.id}
-              className={`relative bg-white rounded-2xl shadow-sm flex flex-col ${
-                plan.highlight ? 'ring-2 ring-evergreen shadow-md' : ''
-              }`}
-            >
-              {plan.badge && (
-                <div
-                  className={`absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-xs font-bold whitespace-nowrap ${
-                    plan.highlight
-                      ? 'bg-evergreen text-porcelain'
-                      : 'bg-hunter-green text-porcelain'
-                  }`}
-                >
-                  {plan.badge}
-                </div>
-              )}
-
-              <div className="p-7 flex flex-col flex-1">
-                <div className="mb-6">
-                  <p className="text-xs font-bold text-hunter-green uppercase tracking-widest mb-1">
-                    {plan.name}
-                  </p>
-                  <div className="flex items-end gap-2 mb-1">
-                    <span className="text-4xl font-bold text-evergreen">{plan.priceLabel}</span>
-                    <span className="text-sm text-shadow-grey/60 mb-1">{plan.period}</span>
-                  </div>
-                  {'monthlyEquiv' in plan && plan.monthlyEquiv && (
-                    <p className="text-xs text-hunter-green font-semibold">{plan.monthlyEquiv}</p>
-                  )}
-                  {'trialLabel' in plan && plan.trialLabel && (
-                    <p className="text-xs text-shadow-grey/60 mt-1">{plan.trialLabel}</p>
-                  )}
-                  <p className="text-sm text-shadow-grey/70 mt-3">{plan.description}</p>
-                </div>
-
-                <Link
-                  href={plan.ctaHref}
-                  className={`w-full text-center py-3 rounded-xl font-semibold text-sm transition-colors mb-7 ${
-                    plan.highlight
-                      ? 'bg-evergreen text-porcelain hover:bg-hunter-green'
-                      : 'border border-evergreen text-evergreen hover:bg-evergreen hover:text-porcelain'
-                  }`}
-                >
-                  {plan.cta}
-                </Link>
-
-                <ul className="space-y-2.5 text-sm text-shadow-grey flex-1">
-                  {plan.features.map(f => (
-                    <li key={f} className="flex items-start gap-2.5">
-                      <CheckIcon />
-                      <span>{f}</span>
-                    </li>
-                  ))}
-                  {plan.missing.map(f => (
-                    <li key={f} className="flex items-start gap-2.5 opacity-40">
-                      <XIcon />
-                      <span>{f}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <p className="text-center text-xs text-shadow-grey/50 mt-6">{labels.footer}</p>
-      </div>
-
-      <div className="bg-white border-t border-gray-100">
-        <div className="max-w-3xl mx-auto px-4 py-14">
-          <h2 className="text-2xl font-bold text-evergreen text-center mb-10">{labels.faq}</h2>
-          <dl className="space-y-6">
-            {faqList.map(faq => (
-              <div key={faq.q} className="border-b border-gray-100 pb-6 last:border-0 last:pb-0">
-                <dt className="font-semibold text-evergreen mb-2">{faq.q}</dt>
-                <dd className="text-shadow-grey/80 text-sm leading-relaxed">{faq.a}</dd>
-              </div>
-            ))}
-          </dl>
-        </div>
-      </div>
+      <Suspense fallback={<div className="min-h-[400px]" />}>
+        <PricingClient locale={locale} labels={labels} planList={planList} faqList={faqList} />
+      </Suspense>
 
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(breadcrumbSchema),
+        }}
       />
     </main>
   )

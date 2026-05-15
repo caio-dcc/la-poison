@@ -1,6 +1,7 @@
 'use client'
 
-import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 import { X } from 'lucide-react'
 import { useLanguage } from '@/hooks/useLanguage'
 
@@ -12,8 +13,43 @@ interface UpgradeModalProps {
 
 export function UpgradeModal({ isOpen, onClose, locale }: UpgradeModalProps) {
   const { dict } = useLanguage()
+  const router = useRouter()
+  const [isLoading, setIsLoading] = useState(false)
 
   if (!isOpen) return null
+
+  const handleUpgradeClick = async () => {
+    setIsLoading(true)
+    try {
+      const response = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_MONTHLY,
+          locale,
+        }),
+      })
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          router.push(`/${locale}/login`)
+          return
+        }
+        router.push(`/${locale}/pricing`)
+        return
+      }
+
+      const { url } = await response.json()
+      if (url) {
+        window.location.href = url
+      }
+    } catch (err) {
+      console.error('Checkout error:', err)
+      router.push(`/${locale}/pricing`)
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -31,12 +67,13 @@ export function UpgradeModal({ isOpen, onClose, locale }: UpgradeModalProps) {
           assistant.
         </p>
 
-        <Link
-          href={`/${locale}/pricing`}
-          className="w-full bg-evergreen text-porcelain rounded-lg py-3 font-semibold hover:bg-hunter-green transition-colors text-center block mb-3"
+        <button
+          onClick={handleUpgradeClick}
+          disabled={isLoading}
+          className="w-full bg-evergreen text-porcelain rounded-lg py-3 font-semibold hover:bg-hunter-green transition-colors disabled:opacity-50 disabled:cursor-not-allowed mb-3"
         >
-          {dict.chatbotUpgrade}
-        </Link>
+          {isLoading ? 'Loading...' : dict.chatbotUpgrade}
+        </button>
 
         <button
           onClick={onClose}
