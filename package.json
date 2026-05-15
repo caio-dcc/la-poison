@@ -7,6 +7,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "seed": "tsx scripts/seed-db.ts",
+    "ingest": "tsx scripts/ingest-cocktaildb.ts",
+    "enrich": "tsx scripts/enrich-with-ai.ts",
+    "embeddings": "tsx scripts/generate-embeddings.ts",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "format": "prettier --write \"src/**/*.{ts,tsx,json,md}\"",
@@ -54,6 +58,7 @@
     "schema-dts": "^2.0.0",
     "shadcn-ui": "^0.9.5",
     "tailwindcss": "^4",
+    "tsx": "^4.7.0",
     "typescript": "^5",
     "typescript-eslint": "^8.59.3",
     "vitest": "^4.1.6"

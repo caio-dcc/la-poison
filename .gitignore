@@ -34,6 +34,8 @@ yarn-error.log*
 .env
 .env.local
 .env.*.local
+.env.production
+.env.production.local
 
 # vercel
 .vercel
@@ -44,3 +46,13 @@ next-env.d.ts
 
 # dev logs
 dev.log
+
+# claude code local settings (may contain credentials)
+.claude/
+
+# turbo cache
+.turbo/
+
+# supabase CLI local state
+supabase/.branches/
+supabase/.temp/

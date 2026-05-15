@@ -45,3 +45,29 @@ echo "Queued:    $(cat AGENT_STATE.json | jq '.tasks_queue | length')"
 ```
 
 todas economiza tempo.
+
+## Environment variables
+
+All secrets live in `.env.local` (gitignored). A redacted template is committed at `.env.example` — copy it and fill in values from the sources below.
+
+| Variable                                            | Required by                             | Where to find it                                                                                               |
+| --------------------------------------------------- | --------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`                          | app + scripts                           | Supabase Dashboard → Project Settings → API → Project URL                                                      |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`              | app                                     | Supabase Dashboard → Project Settings → API → `anon` / `publishable` key                                       |
+| `SUPABASE_SERVICE_KEY`                              | server routes, scripts                  | Supabase Dashboard → Project Settings → API → `service_role` secret. **Never expose to client.**               |
+| `DATABASE_URL`                                      | scripts only (seed, ingest, embeddings) | Supabase Dashboard → Project Settings → Database → Connection string → URI. Rotate password under same screen. |
+| `STRIPE_SECRET_KEY`                                 | `/api/stripe/*`                         | Stripe Dashboard → Developers → API keys → Secret key                                                          |
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`                | client checkout                         | same screen as above, Publishable key                                                                          |
+| `STRIPE_WEBHOOK_SECRET`                             | `/api/stripe/webhook`                   | Stripe Dashboard → Developers → Webhooks → endpoint → Signing secret                                           |
+| `STRIPE_PRICE_ID_MONTHLY`, `STRIPE_PRICE_ID_ANNUAL` | checkout                                | Stripe Dashboard → Products → Pro plan → Prices → API id                                                       |
+| `ANTHROPIC_API_KEY`                                 | chatbot, enrichment                     | console.anthropic.com → Settings → API keys                                                                    |
+| `IP_HASH_SECRET`                                    | chatbot rate limiting                   | Generate locally: `openssl rand -base64 32`                                                                    |
+| `R2_*`                                              | image uploads                           | Cloudflare Dashboard → R2 → API tokens (Object Read & Write on the bucket)                                     |
+| `NEXT_PUBLIC_APP_URL`                               | absolute URLs, OG images                | `http://localhost:3000` in dev, production domain in prod                                                      |
+
+### Security notes
+
+- `.env` and `.env.local` are in `.gitignore`. Verify with `git check-ignore .env.local` before committing.
+- `.claude/settings.local.json` is gitignored. Historically it contained an embedded `DATABASE_URL` — if your clone predates 2026-05-15, rotate the Supabase database password.
+- `SUPABASE_SERVICE_KEY` bypasses Row-Level Security. Use it only in `app/api/*` server routes or in `scripts/`, never in `'use client'` files.
+- `IP_HASH_SECRET` must be stable across deploys, otherwise rate-limit counters reset every restart.
