@@ -9,12 +9,20 @@ import {
   mergeJsonLdSchemas,
 } from '@/lib/seo/jsonld'
 import { truncateDescription, formatTitle } from '@/lib/seo/metadata'
+import { getCategoryName } from '@/lib/i18n/translate'
 
 interface Cocktail {
   id: string
   name: string
   slug: string
   thumb_url: string
+}
+
+interface Category {
+  id: string
+  name: string
+  name_i18n?: Record<string, string> | null
+  slug: string
 }
 
 const localeToLang = {
@@ -32,19 +40,32 @@ const pageLabels = {
 export const dynamicParams = false
 export const revalidate = 3600
 
-async function getCocktailsByCategory(categorySlug: string): Promise<Cocktail[]> {
+async function getCategory(categorySlug: string): Promise<Category | null> {
+  try {
+    const supabase = await createClient()
+
+    const { data, error } = await supabase
+      .from('categories')
+      .select('id, name, name_i18n, slug')
+      .eq('slug', categorySlug)
+      .single()
+
+    if (error || !data) return null
+    return data as Category
+  } catch (err) {
+    console.error('Failed to fetch category:', err)
+    return null
+  }
+}
+
+async function getCocktailsByCategory(categoryId: string): Promise<Cocktail[]> {
   try {
     const supabase = await createClient()
 
     const { data, error } = await supabase
       .from('cocktails')
       .select('id, name, slug, thumb_url')
-      .eq(
-        'category',
-        categorySlug === 'long-island-iced-tea'
-          ? 'Long Island Iced Tea'
-          : categorySlug.replace(/-/g, ' ')
-      )
+      .eq('category_id', categoryId)
       .order('name', { ascending: true })
 
     if (error) {
@@ -69,7 +90,7 @@ async function getAllCategories(): Promise<string[]> {
       return []
     }
 
-    const response = await fetch(`${supabaseUrl}/rest/v1/cocktails?select=category&limit=500`, {
+    const response = await fetch(`${supabaseUrl}/rest/v1/categories?select=slug&limit=500`, {
       headers: {
         apikey: supabaseKey,
         Authorization: `Bearer ${supabaseKey}`,
@@ -81,17 +102,12 @@ async function getAllCategories(): Promise<string[]> {
       return []
     }
 
-    const data = (await response.json()) as Array<{ category: string }>
-    const uniqueCategories = [...new Set(data.map(row => row.category).filter(Boolean))]
-    return uniqueCategories.map(cat => cat.toLowerCase().replace(/\s+/g, '-'))
+    const data = (await response.json()) as Array<{ slug: string }>
+    return data.map(row => row.slug).filter(Boolean)
   } catch (err) {
     console.error('Failed to fetch categories:', err)
     return []
   }
-}
-
-function formatCategoryName(slug: string): string {
-  return slug.replace(/-/g, ' ').replace(/\b\w/g, char => char.toUpperCase())
 }
 
 export async function generateStaticParams() {
@@ -112,16 +128,18 @@ export async function generateMetadata({
   params: Promise<{ locale: string; slug: string }>
 }): Promise<Metadata> {
   const { locale, slug } = await params
-  const cocktails = await getCocktailsByCategory(slug)
-  const categoryName = formatCategoryName(slug)
-  const localeKey = locale as keyof typeof localeToLang
-  const lang = (localeToLang[localeKey] || 'pt-BR') as 'pt-BR' | 'en-US' | 'es-ES'
+  const category = await getCategory(slug)
 
-  if (!cocktails.length) {
+  if (!category) {
     return {
       title: 'Category not found',
     }
   }
+
+  const cocktails = await getCocktailsByCategory(category.id)
+  const categoryName = getCategoryName(category, locale)
+  const localeKey = locale as keyof typeof localeToLang
+  const lang = (localeToLang[localeKey] || 'pt-BR') as 'pt-BR' | 'en-US' | 'es-ES'
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
   const pathname = `/${locale}/drinks/category/${slug}`
@@ -154,8 +172,14 @@ export default async function CategoryPage({
   params: Promise<{ locale: string; slug: string }>
 }) {
   const { locale, slug } = await params
-  const cocktails = await getCocktailsByCategory(slug)
-  const categoryName = formatCategoryName(slug)
+  const category = await getCategory(slug)
+
+  if (!category) {
+    notFound()
+  }
+
+  const cocktails = await getCocktailsByCategory(category.id)
+  const categoryName = getCategoryName(category, locale)
   const labels = pageLabels[locale as keyof typeof pageLabels] || pageLabels.pt
 
   if (!cocktails.length) {

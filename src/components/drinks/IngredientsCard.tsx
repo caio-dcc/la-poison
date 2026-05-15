@@ -2,9 +2,11 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { getIngredientName } from '@/lib/i18n/translate'
 
 interface Ingredient {
   name: string
+  name_i18n?: Record<string, string> | null
   slug?: string
   measure_text?: string
   amount_ml?: number | null
@@ -31,15 +33,28 @@ function convertToMl(measureText: string | undefined, amountMl?: number | null):
   return measureText
 }
 
-export function IngredientsCard({ ingredients }: { ingredients: Ingredient[] }) {
+const ingredientLabels = {
+  pt: 'Ingredientes',
+  en: 'Ingredients',
+  es: 'Ingredientes',
+}
+
+export function IngredientsCard({
+  ingredients,
+  locale = 'pt',
+}: {
+  ingredients: Ingredient[]
+  locale?: string
+}) {
   const [unit, setUnit] = useState<'original' | 'ml'>('original')
 
   const canToggle = ingredients.some(i => i.amount_ml || i.measure_text?.match(/oz/i))
+  const label = ingredientLabels[locale as keyof typeof ingredientLabels] || ingredientLabels.pt
 
   return (
     <div className="bg-white rounded-2xl shadow-sm p-6">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-bold text-evergreen">Ingredients</h2>
+        <h2 className="text-lg font-bold text-evergreen">{label}</h2>
         {canToggle && (
           <div className="flex items-center rounded-lg border border-gray-200 overflow-hidden text-xs font-medium">
             <button
@@ -58,27 +73,30 @@ export function IngredientsCard({ ingredients }: { ingredients: Ingredient[] }) 
         )}
       </div>
       <ul className="space-y-2.5">
-        {ingredients.map((ing, idx) => (
-          <li key={idx} className="flex items-baseline gap-3">
-            {ing.measure_text && (
-              <span className="text-sm font-semibold text-hunter-green min-w-[90px] shrink-0">
-                {unit === 'ml'
-                  ? convertToMl(ing.measure_text, ing.amount_ml)
-                  : ing.measure_text || ''}
-              </span>
-            )}
-            {ing.slug ? (
-              <Link
-                href={`/drinks/ingredient/${ing.slug}`}
-                className="text-shadow-grey hover:text-evergreen transition-colors"
-              >
-                {ing.name}
-              </Link>
-            ) : (
-              <span className="text-shadow-grey">{ing.name}</span>
-            )}
-          </li>
-        ))}
+        {ingredients.map((ing, idx) => {
+          const translatedName = getIngredientName(ing, locale)
+          return (
+            <li key={idx} className="flex items-baseline gap-3">
+              {ing.measure_text && (
+                <span className="text-sm font-semibold text-hunter-green min-w-[90px] shrink-0">
+                  {unit === 'ml'
+                    ? convertToMl(ing.measure_text, ing.amount_ml)
+                    : ing.measure_text || ''}
+                </span>
+              )}
+              {ing.slug ? (
+                <Link
+                  href={`/${locale}/drinks/ingredient/${ing.slug}`}
+                  className="text-shadow-grey hover:text-evergreen transition-colors"
+                >
+                  {translatedName}
+                </Link>
+              ) : (
+                <span className="text-shadow-grey">{translatedName}</span>
+              )}
+            </li>
+          )
+        })}
       </ul>
     </div>
   )

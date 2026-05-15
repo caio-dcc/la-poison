@@ -11,22 +11,40 @@ import {
 } from '@/lib/seo/jsonld'
 import { truncateDescription, formatTitle } from '@/lib/seo/metadata'
 import { IngredientsCard } from '@/components/drinks/IngredientsCard'
+import { getInstructions, getIngredientName, getCategoryName } from '@/lib/i18n/translate'
 
 interface CocktailRow {
   id: string
   name: string
   slug: string
-  category: string
-  instructions: string
+  instructions_pt: string | null
+  instructions_en: string | null
+  instructions_es: string | null
+  category_id: string | null
   thumb_url: string
   abv_estimate?: number
   difficulty?: number
   prep_time_minutes?: number
 }
 
+interface Category {
+  id: string
+  name: string
+  name_i18n?: Record<string, string> | null
+  slug: string
+}
+
+interface Ingredient {
+  name: string
+  name_i18n?: Record<string, string> | null
+  slug: string
+}
+
 interface CocktailWithIngredients extends CocktailRow {
+  category?: Category
   ingredients: Array<{
     name: string
+    name_i18n?: Record<string, string> | null
     measure_text?: string
     slug?: string
     amount_ml?: number | null
@@ -82,18 +100,18 @@ async function getCocktail(slug: string): Promise<CocktailWithIngredients | null
     const { data, error } = await supabase
       .from('cocktails')
       .select(
-        'id, name, slug, category, instructions, thumb_url, abv_estimate, difficulty, prep_time_minutes'
+        'id, name, slug, instructions_pt, instructions_en, instructions_es, category_id, thumb_url, abv_estimate, difficulty, prep_time_minutes, categories(id, name, name_i18n, slug)'
       )
       .eq('slug', slug)
       .single()
 
     if (error || !data) return null
 
-    const cocktailRow = data as CocktailRow
+    const cocktailRow = data as unknown as CocktailRow & { categories: Category }
 
     const { data: ingredientData, error: ingredientError } = await supabase
       .from('cocktail_ingredients')
-      .select('measure_text, amount_ml, ingredients(name, slug)')
+      .select('measure_text, amount_ml, ingredients(name, name_i18n, slug)')
       .eq('cocktail_id', cocktailRow.id)
       .order('order_index', { ascending: true })
 
@@ -102,20 +120,22 @@ async function getCocktail(slug: string): Promise<CocktailWithIngredients | null
     }
 
     const ingredients = (ingredientData || []).map(item => {
-      const ing = item.ingredients as
-        | { name: string; slug: string }
-        | { name: string; slug: string }[]
-        | null
+      const ing = item.ingredients as Ingredient | Ingredient[] | null
       const resolved = Array.isArray(ing) ? ing[0] : ing
       return {
         name: resolved?.name || 'Unknown',
+        name_i18n: resolved?.name_i18n,
         slug: resolved?.slug,
         measure_text: item.measure_text || '',
         amount_ml: (item as { amount_ml?: number | null }).amount_ml ?? null,
       }
     })
 
-    return { ...cocktailRow, ingredients }
+    return {
+      ...cocktailRow,
+      category: cocktailRow.categories,
+      ingredients,
+    }
   } catch (err) {
     console.error('Failed to fetch cocktail:', err)
     return null
@@ -162,9 +182,9 @@ export async function generateMetadata({
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
   const pathname = `/${locale}/drinks/${slug}`
-  const description = truncateDescription(
-    `${cocktail.name} — ${cocktail.category}. ${cocktail.instructions}`
-  )
+  const instructions = getInstructions(cocktail, locale)
+  const categoryName = cocktail.category ? getCategoryName(cocktail.category, locale) : ''
+  const description = truncateDescription(`${cocktail.name} — ${categoryName}. ${instructions}`)
   const localeKey = locale as keyof typeof localeToLang
   const lang = (localeToLang[localeKey] || 'pt-BR') as 'pt-BR' | 'en-US' | 'es-ES'
 
@@ -181,7 +201,7 @@ export async function generateMetadata({
       },
       locale: lang,
       type: 'article',
-      tags: [cocktail.category],
+      tags: categoryName ? [categoryName] : [],
     },
     baseUrl
   )
@@ -213,15 +233,18 @@ export default async function DrinkPage({
   const pathname = `/${locale}/drinks/${slug}`
   const canonicalUrl = buildCanonicalUrl(pathname)
 
+  const categoryName = cocktail.category ? getCategoryName(cocktail.category, locale) : ''
+  const instructions = getInstructions(cocktail, locale)
+
   const recipeSchema = generateRecipeSchema({
     id: cocktail.id,
     name: cocktail.name,
-    description: cocktail.instructions || '',
+    description: instructions || '',
     image: cocktail.thumb_url,
     canonicalUrl,
     ingredients: cocktail.ingredients || [],
-    instructions: [{ type: 'HowToStep', text: cocktail.instructions || 'Mix and serve' }],
-    keywords: [cocktail.category],
+    instructions: [{ type: 'HowToStep', text: instructions || 'Mix and serve' }],
+    keywords: [categoryName],
   })
 
   const breadcrumbSchema = generateBreadcrumbSchema({
@@ -234,8 +257,8 @@ export default async function DrinkPage({
 
   const jsonLd = mergeJsonLdSchemas(recipeSchema, breadcrumbSchema)
 
-  const instructionSteps = cocktail.instructions
-    ? cocktail.instructions.split(/(?<=[.!])\s+(?=[A-Z1-9])/).filter(s => s.trim().length > 0)
+  const instructionSteps = instructions
+    ? instructions.split(/(?<=[.!])\s+(?=[A-Z1-9])/).filter(s => s.trim().length > 0)
     : []
 
   return (
@@ -272,10 +295,10 @@ export default async function DrinkPage({
               <div className="flex items-center justify-between">
                 <span className="text-shadow-grey/70">{labels.category}</span>
                 <Link
-                  href={`/${locale}/drinks/category/${cocktail.category.toLowerCase().replace(/\s+/g, '-')}`}
+                  href={`/${locale}/drinks/category/${(cocktail.category?.slug || categoryName).toLowerCase().replace(/\s+/g, '-')}`}
                   className="font-medium text-evergreen hover:text-hunter-green transition-colors"
                 >
-                  {cocktail.category}
+                  {categoryName}
                 </Link>
               </div>
               {cocktail.difficulty && (
@@ -306,14 +329,14 @@ export default async function DrinkPage({
               <h1 className="text-3xl md:text-4xl font-bold text-evergreen mb-1">
                 {cocktail.name}
               </h1>
-              <p className="text-hunter-green">{cocktail.category}</p>
+              <p className="text-hunter-green">{categoryName}</p>
             </div>
 
             {cocktail.ingredients.length > 0 && (
-              <IngredientsCard ingredients={cocktail.ingredients} />
+              <IngredientsCard ingredients={cocktail.ingredients} locale={locale} />
             )}
 
-            {cocktail.instructions && (
+            {instructions && (
               <div className="bg-white rounded-2xl shadow-sm p-6">
                 <h2 className="text-lg font-bold text-evergreen mb-4">{labels.instructions}</h2>
                 {instructionSteps.length > 1 ? (
@@ -325,7 +348,7 @@ export default async function DrinkPage({
                     ))}
                   </ol>
                 ) : (
-                  <p className="text-shadow-grey leading-relaxed">{cocktail.instructions}</p>
+                  <p className="text-shadow-grey leading-relaxed">{instructions}</p>
                 )}
               </div>
             )}

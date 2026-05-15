@@ -9,12 +9,20 @@ import {
   mergeJsonLdSchemas,
 } from '@/lib/seo/jsonld'
 import { truncateDescription, formatTitle } from '@/lib/seo/metadata'
+import { getIngredientName } from '@/lib/i18n/translate'
 
 interface CocktailWithIngredient {
   id: string
   name: string
   slug: string
   thumb_url: string
+}
+
+interface Ingredient {
+  id: string
+  name: string
+  name_i18n?: Record<string, string> | null
+  slug: string
 }
 
 const localeToLang = {
@@ -32,29 +40,36 @@ const pageLabels = {
 export const dynamicParams = false
 export const revalidate = 3600
 
-async function getCocktailsByIngredient(ingredientSlug: string): Promise<CocktailWithIngredient[]> {
+async function getIngredient(ingredientSlug: string): Promise<Ingredient | null> {
   try {
     const supabase = await createClient()
 
-    const ingredientName = ingredientSlug
-      .replace(/-/g, ' ')
-      .replace(/\b\w/g, char => char.toUpperCase())
-
-    const { data: ingredientData, error: ingredientError } = await supabase
+    const { data, error } = await supabase
       .from('ingredients')
-      .select('id')
-      .ilike('name', ingredientName)
+      .select('id, name, name_i18n, slug')
+      .eq('slug', ingredientSlug)
       .single()
 
-    if (ingredientError || !ingredientData) {
+    if (error || !data) {
       console.warn('Ingredient not found:', ingredientSlug)
-      return []
+      return null
     }
+
+    return data as Ingredient
+  } catch (err) {
+    console.error('Failed to fetch ingredient:', err)
+    return null
+  }
+}
+
+async function getCocktailsByIngredient(ingredientId: string): Promise<CocktailWithIngredient[]> {
+  try {
+    const supabase = await createClient()
 
     const { data, error } = await supabase
       .from('cocktail_ingredients')
       .select('cocktails(id, name, slug, thumb_url)')
-      .eq('ingredient_id', ingredientData.id)
+      .eq('ingredient_id', ingredientId)
       .order('cocktails(name)', { ascending: true })
 
     if (error) {
@@ -84,7 +99,7 @@ async function getAllIngredients(): Promise<string[]> {
       return []
     }
 
-    const response = await fetch(`${supabaseUrl}/rest/v1/ingredients?select=name&limit=500`, {
+    const response = await fetch(`${supabaseUrl}/rest/v1/ingredients?select=slug&limit=500`, {
       headers: {
         apikey: supabaseKey,
         Authorization: `Bearer ${supabaseKey}`,
@@ -96,16 +111,12 @@ async function getAllIngredients(): Promise<string[]> {
       return []
     }
 
-    const data = (await response.json()) as Array<{ name: string }>
-    return data.map(row => row.name.toLowerCase().replace(/\s+/g, '-'))
+    const data = (await response.json()) as Array<{ slug: string }>
+    return data.map(row => row.slug).filter(Boolean)
   } catch (err) {
     console.error('Failed to fetch ingredients:', err)
     return []
   }
-}
-
-function formatIngredientName(slug: string): string {
-  return slug.replace(/-/g, ' ').replace(/\b\w/g, char => char.toUpperCase())
 }
 
 export async function generateStaticParams() {
@@ -126,16 +137,18 @@ export async function generateMetadata({
   params: Promise<{ locale: string; slug: string }>
 }): Promise<Metadata> {
   const { locale, slug } = await params
-  const cocktails = await getCocktailsByIngredient(slug)
-  const ingredientName = formatIngredientName(slug)
-  const localeKey = locale as keyof typeof localeToLang
-  const lang = (localeToLang[localeKey] || 'pt-BR') as 'pt-BR' | 'en-US' | 'es-ES'
+  const ingredient = await getIngredient(slug)
 
-  if (!cocktails.length) {
+  if (!ingredient) {
     return {
       title: 'Ingredient not found',
     }
   }
+
+  const cocktails = await getCocktailsByIngredient(ingredient.id)
+  const ingredientName = getIngredientName(ingredient, locale)
+  const localeKey = locale as keyof typeof localeToLang
+  const lang = (localeToLang[localeKey] || 'pt-BR') as 'pt-BR' | 'en-US' | 'es-ES'
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
   const pathname = `/${locale}/drinks/ingredient/${slug}`
@@ -168,8 +181,14 @@ export default async function IngredientPage({
   params: Promise<{ locale: string; slug: string }>
 }) {
   const { locale, slug } = await params
-  const cocktails = await getCocktailsByIngredient(slug)
-  const ingredientName = formatIngredientName(slug)
+  const ingredient = await getIngredient(slug)
+
+  if (!ingredient) {
+    notFound()
+  }
+
+  const cocktails = await getCocktailsByIngredient(ingredient.id)
+  const ingredientName = getIngredientName(ingredient, locale)
   const labels = pageLabels[locale as keyof typeof pageLabels] || pageLabels.pt
 
   if (!cocktails.length) {
