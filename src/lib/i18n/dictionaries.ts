@@ -61,6 +61,18 @@ export const dictionaries = {
     alreadyHaveAccount: 'Já tem uma conta?',
     dontHaveAccount: 'Não tem uma conta?',
     or: 'ou',
+
+    // Chatbot
+    chatbotTitle: 'Assistente de Coquetéis',
+    chatbotPlaceholder: 'Faça uma pergunta sobre coquetéis...',
+    chatbotSend: 'Enviar',
+    chatbotThinking: 'Pensando...',
+    chatbotError: 'Erro ao processar sua pergunta',
+    chatbotLimitReached: 'Você atingiu o limite diário',
+    chatbotUpgrade: 'Faça upgrade para Pro',
+    chatbotQueriesRemaining: 'consultas restantes hoje',
+    chatbotWelcome:
+      'Bem-vindo ao assistente de coquetéis! Faça qualquer pergunta sobre ingredientes, técnicas ou receitas.',
   },
 
   en: {
@@ -118,6 +130,18 @@ export const dictionaries = {
     alreadyHaveAccount: 'Already have an account?',
     dontHaveAccount: "Don't have an account?",
     or: 'or',
+
+    // Chatbot
+    chatbotTitle: 'Cocktail Assistant',
+    chatbotPlaceholder: 'Ask a question about cocktails...',
+    chatbotSend: 'Send',
+    chatbotThinking: 'Thinking...',
+    chatbotError: 'Error processing your question',
+    chatbotLimitReached: 'You reached your daily limit',
+    chatbotUpgrade: 'Upgrade to Pro',
+    chatbotQueriesRemaining: 'queries remaining today',
+    chatbotWelcome:
+      'Welcome to the cocktail assistant! Ask any question about ingredients, techniques, or recipes.',
   },
 
   es: {
@@ -175,6 +199,18 @@ export const dictionaries = {
     alreadyHaveAccount: '¿Ya tiene una cuenta?',
     dontHaveAccount: '¿No tiene una cuenta?',
     or: 'o',
+
+    // Chatbot
+    chatbotTitle: 'Asistente de Cócteles',
+    chatbotPlaceholder: 'Haz una pregunta sobre cócteles...',
+    chatbotSend: 'Enviar',
+    chatbotThinking: 'Pensando...',
+    chatbotError: 'Error al procesar tu pregunta',
+    chatbotLimitReached: 'Alcanzaste el límite diario',
+    chatbotUpgrade: 'Actualizar a Pro',
+    chatbotQueriesRemaining: 'consultas disponibles hoy',
+    chatbotWelcome:
+      '¡Bienvenido al asistente de cócteles! Haz cualquier pregunta sobre ingredientes, técnicas o recetas.',
   },
 }
 
