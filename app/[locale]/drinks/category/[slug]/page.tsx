@@ -1,7 +1,6 @@
 import { Metadata, ResolvingMetadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { createClient } from '@/utils/supabase/server'
 import { generateSEOMetadata, buildOGImageUrl, buildCanonicalUrl } from '@/lib/seo/metadata'
 import {
   generateCollectionSchema,
@@ -42,16 +41,18 @@ export const revalidate = 3600
 
 async function getCategory(categorySlug: string): Promise<Category | null> {
   try {
-    const supabase = await createClient()
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+    if (!supabaseUrl || !supabaseKey) return null
 
-    const { data, error } = await supabase
-      .from('categories')
-      .select('id, name, name_i18n, slug')
-      .eq('slug', categorySlug)
-      .single()
-
-    if (error || !data) return null
-    return data as Category
+    const response = await fetch(
+      `${supabaseUrl}/rest/v1/categories?slug=eq.${categorySlug}&select=id,name,name_i18n,slug`,
+      { headers: { apikey: supabaseKey } }
+    )
+    if (!response.ok) return null
+    const data = (await response.json()) as Array<any>
+    if (!data.length) return null
+    return data[0] as Category
   } catch (err) {
     console.error('Failed to fetch category:', err)
     return null
@@ -60,20 +61,16 @@ async function getCategory(categorySlug: string): Promise<Category | null> {
 
 async function getCocktailsByCategory(categoryId: string): Promise<Cocktail[]> {
   try {
-    const supabase = await createClient()
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+    if (!supabaseUrl || !supabaseKey) return []
 
-    const { data, error } = await supabase
-      .from('cocktails')
-      .select('id, name, slug, thumb_url')
-      .eq('category_id', categoryId)
-      .order('name', { ascending: true })
-
-    if (error) {
-      console.error('Supabase error:', error)
-      return []
-    }
-
-    return (data || []) as Cocktail[]
+    const response = await fetch(
+      `${supabaseUrl}/rest/v1/cocktails?category_id=eq.${categoryId}&order=name.asc&select=id,name,slug,thumb_url`,
+      { headers: { apikey: supabaseKey } }
+    )
+    if (!response.ok) return []
+    return (await response.json()) as Cocktail[]
   } catch (err) {
     console.error('Failed to fetch cocktails by category:', err)
     return []

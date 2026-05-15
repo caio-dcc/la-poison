@@ -2,7 +2,6 @@
 import { Metadata, ResolvingMetadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { createClient } from '@/utils/supabase/server'
 import { generateSEOMetadata, buildOGImageUrl, buildCanonicalUrl } from '@/lib/seo/metadata'
 import {
   generateRecipeSchema,
@@ -95,29 +94,32 @@ export const revalidate = 3600
 
 async function getCocktail(slug: string): Promise<CocktailWithIngredients | null> {
   try {
-    const supabase = await createClient()
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+    if (!supabaseUrl || !supabaseKey) return null
 
-    const { data, error } = await supabase
-      .from('cocktails')
-      .select(
-        'id, name, slug, instructions_pt, instructions_en, instructions_es, category_id, thumb_url, abv_estimate, difficulty, prep_time_minutes, categories(id, name, name_i18n, slug)'
-      )
-      .eq('slug', slug)
-      .single()
+    // Use REST API to avoid cookies() during SSG
+    const response = await fetch(
+      `${supabaseUrl}/rest/v1/cocktails?slug=eq.${slug}&select=id,name,slug,instructions_pt,instructions_en,instructions_es,category_id,thumb_url,abv_estimate,difficulty,prep_time_minutes,categories(id,name,name_i18n,slug)`,
+      {
+        headers: { apikey: supabaseKey },
+      }
+    )
+    if (!response.ok) return null
+    const data = (await response.json()) as Array<any>
+    if (!data.length) return null
 
-    if (error || !data) return null
+    const cocktailRow = data[0] as CocktailRow & { categories: Category }
 
-    const cocktailRow = data as unknown as CocktailRow & { categories: Category }
-
-    const { data: ingredientData, error: ingredientError } = await supabase
-      .from('cocktail_ingredients')
-      .select('measure_text, amount_ml, ingredients(name, name_i18n, slug)')
-      .eq('cocktail_id', cocktailRow.id)
-      .order('order_index', { ascending: true })
-
-    if (ingredientError) {
-      console.warn('Warning fetching ingredients:', ingredientError)
-    }
+    // Fetch ingredients via REST API
+    const ingredientResponse = await fetch(
+      `${supabaseUrl}/rest/v1/cocktail_ingredients?cocktail_id=eq.${cocktailRow.id}&order=order_index.asc&select=measure_text,amount_ml,ingredients(name,name_i18n,slug)`,
+      {
+        headers: { apikey: supabaseKey },
+      }
+    )
+    if (!ingredientResponse.ok) return null
+    const ingredientData = (await ingredientResponse.json()) as Array<any>
 
     const ingredients = (ingredientData || []).map(item => {
       const ing = item.ingredients as Ingredient | Ingredient[] | null
@@ -127,7 +129,7 @@ async function getCocktail(slug: string): Promise<CocktailWithIngredients | null
         name_i18n: resolved?.name_i18n,
         slug: resolved?.slug,
         measure_text: item.measure_text || '',
-        amount_ml: (item as { amount_ml?: number | null }).amount_ml ?? null,
+        amount_ml: item.amount_ml ?? null,
       }
     })
 

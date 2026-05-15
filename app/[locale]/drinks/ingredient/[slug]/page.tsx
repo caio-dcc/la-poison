@@ -1,7 +1,6 @@
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { createClient } from '@/utils/supabase/server'
 import { generateSEOMetadata, buildOGImageUrl, buildCanonicalUrl } from '@/lib/seo/metadata'
 import {
   generateCollectionSchema,
@@ -42,20 +41,18 @@ export const revalidate = 3600
 
 async function getIngredient(ingredientSlug: string): Promise<Ingredient | null> {
   try {
-    const supabase = await createClient()
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+    if (!supabaseUrl || !supabaseKey) return null
 
-    const { data, error } = await supabase
-      .from('ingredients')
-      .select('id, name, name_i18n, slug')
-      .eq('slug', ingredientSlug)
-      .single()
-
-    if (error || !data) {
-      console.warn('Ingredient not found:', ingredientSlug)
-      return null
-    }
-
-    return data as Ingredient
+    const response = await fetch(
+      `${supabaseUrl}/rest/v1/ingredients?slug=eq.${ingredientSlug}&select=id,name,name_i18n,slug`,
+      { headers: { apikey: supabaseKey } }
+    )
+    if (!response.ok) return null
+    const data = (await response.json()) as Array<any>
+    if (!data.length) return null
+    return data[0] as Ingredient
   } catch (err) {
     console.error('Failed to fetch ingredient:', err)
     return null
@@ -64,18 +61,16 @@ async function getIngredient(ingredientSlug: string): Promise<Ingredient | null>
 
 async function getCocktailsByIngredient(ingredientId: string): Promise<CocktailWithIngredient[]> {
   try {
-    const supabase = await createClient()
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+    if (!supabaseUrl || !supabaseKey) return []
 
-    const { data, error } = await supabase
-      .from('cocktail_ingredients')
-      .select('cocktails(id, name, slug, thumb_url)')
-      .eq('ingredient_id', ingredientId)
-      .order('cocktails(name)', { ascending: true })
-
-    if (error) {
-      console.error('Supabase error:', error)
-      return []
-    }
+    const response = await fetch(
+      `${supabaseUrl}/rest/v1/cocktail_ingredients?ingredient_id=eq.${ingredientId}&select=cocktails(id,name,slug,thumb_url)&order=cocktails(name).asc`,
+      { headers: { apikey: supabaseKey } }
+    )
+    if (!response.ok) return []
+    const data = (await response.json()) as Array<any>
 
     return (data || [])
       .map(item => {

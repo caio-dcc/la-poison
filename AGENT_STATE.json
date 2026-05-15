@@ -2,7 +2,7 @@
   "version": "1.0",
   "last_updated": "2026-05-15T12:00:00.000Z",
   "last_agent": "claude-code",
-  "current_task": null,
+  "current_task": "T-024-VERIFY",
   "completed_tasks": [
     {
       "id": "T-001",
