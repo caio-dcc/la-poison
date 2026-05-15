@@ -1,13 +1,8 @@
 {
   "version": "1.0",
-  "last_updated": "2026-05-14T05:30:00.000Z",
+  "last_updated": "2026-05-15T12:00:00.000Z",
   "last_agent": "claude-code",
-  "current_task": {
-    "id": "T-033",
-    "title": "Implementar chatbot UI (streaming, rate limiting, paywall)",
-    "status": "pending",
-    "started_at": null
-  },
+  "current_task": null,
   "completed_tasks": [
     {
       "id": "T-001",
@@ -203,6 +198,14 @@
       "notes": "All 11 API route files implemented. POST /api/auth/login, GET/POST /api/bar, GET/PUT/DELETE /api/bar/[id], GET/POST /api/bar/[id]/inventory, PUT/DELETE /api/bar/[id]/inventory/[itemId], POST /api/bar/[id]/share, DELETE /api/bar/[id]/share/[userId], GET/POST /api/ingredients, GET /api/ingredients/[id], GET /api/cocktails, GET /api/cocktails/[id]. src/types/api.ts created with all TypeScript interfaces. Fixed LanguageContext hydration flick. All endpoints tested: auth returns 401, bar returns 401 (auth required), cocktails/ingredients return JSON. Build passes, linting passes."
     },
     {
+      "id": "T-033",
+      "title": "Implementar chatbot UI (streaming, rate limiting, paywall)",
+      "completed_at": "2026-05-15T12:00:00.000Z",
+      "agent": "claude-code",
+      "commit_sha": "5b85efe",
+      "notes": "Chatbot UI with streaming Claude Haiku responses. HMAC-SHA256 IP rate limiting (3/day anon, 10/day free, unlimited Pro). App/[locale]/chatbot/page.tsx SSG, ChatbotInterface client component, UpgradeModal paywall. 9 i18n keys added. API /api/chatbot with 429 on limit. Build passes."
+    },
+    {
       "id": "T-032",
       "title": "Criar página de pricing com 3 planos",
       "completed_at": "2026-05-14T05:30:00.000Z",
@@ -219,16 +222,7 @@
       "notes": "Login and signup pages with Supabase Auth (email/password + Google OAuth). i18n keys for PT/EN/ES. OAuth callback handler. Build passes successfully."
     }
   ],
-  "tasks_queue": [
-    {
-      "id": "T-033",
-      "title": "Implementar chatbot UI (streaming, rate limiting, paywall)",
-      "priority": 1,
-      "phase": "Fase 5 — Chatbot",
-      "blockers": ["T-032"],
-      "estimated_hours": 4
-    }
-  ],
+  "tasks_queue": [],
   "session_log": [
     {
       "timestamp": "2026-05-14T05:30:00.000Z",
@@ -424,5 +418,5 @@
     "arch_ssg_strategy",
     "pricing_model"
   ],
-  "status": "T-030 complete. All original MVP API endpoints implemented and tested. Language hydration flick fixed. Build passes. Next: T-031 (Login/signup pages with Supabase Auth)."
+  "status": "T-033 complete. Chatbot UI with streaming, rate limiting, and paywall implemented. Build passes with /pt/chatbot, /en/chatbot, /es/chatbot as SSG. Next task queue is empty — see ROADMAP.md for Phase 5+ tasks."
 }
