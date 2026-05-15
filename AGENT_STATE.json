@@ -2,7 +2,7 @@
   "version": "1.0",
   "last_updated": "2026-05-15T12:00:00.000Z",
   "last_agent": "claude-code",
-  "current_task": "T-024-VERIFY",
+  "current_task": "T-034-SMOKE-BG",
   "completed_tasks": [
     {
       "id": "T-001",
@@ -220,6 +220,14 @@
       "agent": "claude-code",
       "commit_sha": "8f2f5d8",
       "notes": "Login and signup pages with Supabase Auth (email/password + Google OAuth). i18n keys for PT/EN/ES. OAuth callback handler. Build passes successfully."
+    },
+    {
+      "id": "T-034",
+      "title": "Integrar WebGL smoke background com cores da marca",
+      "completed_at": "2026-05-15T17:30:00Z",
+      "agent": "claude-code",
+      "commit_sha": "4418f3a",
+      "notes": "SmokeBackground component with Renderer class and fragment shader. Uses porcelain (#F1F5F2) smoke on evergreen (#14281D) base. Accessibility: prefers-reduced-motion fallback. Mounted in RootLayoutWrapper with pointer-events-none. Canvas dpr-aware scaling. Build passes with 1310+ pages."
     }
   ],
   "tasks_queue": [],
@@ -418,5 +426,5 @@
     "arch_ssg_strategy",
     "pricing_model"
   ],
-  "status": "T-033 complete. Chatbot UI with streaming, rate limiting, and paywall implemented. Build passes with /pt/chatbot, /en/chatbot, /es/chatbot as SSG. Next task queue is empty — see ROADMAP.md for Phase 5+ tasks."
+  "status": "T-034 complete. SmokeBackground WebGL component integrated site-wide with brand colors (porcelain #F1F5F2 on evergreen #14281D). Accessibility: prefers-reduced-motion fallback to static bg. Build passes with 1310+ pages prerendered. Next: Phase 4 (RAG chatbot) + Phase 5 (auth user surface)."
 }
