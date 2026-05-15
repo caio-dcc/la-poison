@@ -3,12 +3,27 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 
-const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://lapoison.com'
+export interface PricingPlan {
+  id: string
+  name: string
+  price: number | null
+  priceLabel: string
+  period: string
+  description: string
+  cta: string
+  priceId: string | null | undefined
+  highlight: boolean
+  badge?: string
+  trialLabel?: string
+  monthlyEquiv?: string
+  features: string[]
+  missing: string[]
+}
 
 export interface PricingClientProps {
   locale: string
   labels: Record<string, string>
-  planList: Array<any>
+  planList: PricingPlan[]
   faqList: Array<{ q: string; a: string }>
 }
 
@@ -45,16 +60,25 @@ function XIcon() {
 export function PricingClient({ locale, labels, planList, faqList }: PricingClientProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const [message, setMessage] = useState<{ type: 'success' | 'error' | 'canceled'; text: string } | null>(null)
+  const [message, setMessage] = useState<{
+    type: 'success' | 'error' | 'canceled'
+    text: string
+  } | null>(null)
   const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
-    if (searchParams.get('success')) {
+    const success = searchParams.get('success')
+    const canceled = searchParams.get('canceled')
+
+    if (success) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setMessage({ type: 'success', text: labels.successMessage })
-      setTimeout(() => setMessage(null), 3000)
-    } else if (searchParams.get('canceled')) {
+      const timer = setTimeout(() => setMessage(null), 3000)
+      return () => clearTimeout(timer)
+    } else if (canceled) {
       setMessage({ type: 'canceled', text: labels.canceledMessage })
-      setTimeout(() => setMessage(null), 3000)
+      const timer = setTimeout(() => setMessage(null), 3000)
+      return () => clearTimeout(timer)
     }
   }, [searchParams, labels])
 
@@ -114,7 +138,7 @@ export function PricingClient({ locale, labels, planList, faqList }: PricingClie
 
       <div className="max-w-5xl mx-auto px-4 py-14">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {planList.map((plan: any) => (
+          {planList.map((plan: PricingPlan) => (
             <div
               key={plan.id}
               className={`relative bg-white rounded-2xl shadow-sm flex flex-col ${
@@ -129,7 +153,7 @@ export function PricingClient({ locale, labels, planList, faqList }: PricingClie
                       : 'bg-hunter-green text-porcelain'
                   }`}
                 >
-                  {plan.badge}
+                  {typeof plan.badge === 'string' ? plan.badge : ''}
                 </div>
               )}
 
@@ -166,13 +190,13 @@ export function PricingClient({ locale, labels, planList, faqList }: PricingClie
                 </button>
 
                 <ul className="space-y-2.5 text-sm text-shadow-grey flex-1">
-                  {plan.features.map((f: string) => (
+                  {plan.features.map(f => (
                     <li key={f} className="flex items-start gap-2.5">
                       <CheckIcon />
                       <span>{f}</span>
                     </li>
                   ))}
-                  {plan.missing.map((f: string) => (
+                  {plan.missing.map(f => (
                     <li key={f} className="flex items-start gap-2.5 opacity-40">
                       <XIcon />
                       <span>{f}</span>

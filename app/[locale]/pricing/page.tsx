@@ -7,12 +7,6 @@ import { PricingClient } from '@/components/pricing/PricingClient'
 
 const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://lapoison.com'
 
-const localeToLang = {
-  pt: 'pt-BR',
-  en: 'en-US',
-  es: 'es-ES',
-}
-
 const pageLabels = {
   pt: {
     title: 'Planos e Preços',
