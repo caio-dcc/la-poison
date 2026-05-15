@@ -1,4 +1,4 @@
-import { Metadata, ResolvingMetadata } from 'next'
+import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { generateSEOMetadata, buildOGImageUrl, buildCanonicalUrl } from '@/lib/seo/metadata'
@@ -50,9 +50,9 @@ async function getCategory(categorySlug: string): Promise<Category | null> {
       { headers: { apikey: supabaseKey } }
     )
     if (!response.ok) return null
-    const data = (await response.json()) as Array<any>
+    const data = (await response.json()) as Array<Category>
     if (!data.length) return null
-    return data[0] as Category
+    return data[0]
   } catch (err) {
     console.error('Failed to fetch category:', err)
     return null

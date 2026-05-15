@@ -24,6 +24,10 @@ interface Ingredient {
   slug: string
 }
 
+interface IngredientCocktailJoinItem {
+  cocktails: CocktailWithIngredient | CocktailWithIngredient[] | null
+}
+
 const localeToLang = {
   pt: 'pt-BR',
   en: 'en-US',
@@ -50,9 +54,9 @@ async function getIngredient(ingredientSlug: string): Promise<Ingredient | null>
       { headers: { apikey: supabaseKey } }
     )
     if (!response.ok) return null
-    const data = (await response.json()) as Array<any>
+    const data = (await response.json()) as Array<Ingredient>
     if (!data.length) return null
-    return data[0] as Ingredient
+    return data[0]
   } catch (err) {
     console.error('Failed to fetch ingredient:', err)
     return null
@@ -70,7 +74,7 @@ async function getCocktailsByIngredient(ingredientId: string): Promise<CocktailW
       { headers: { apikey: supabaseKey } }
     )
     if (!response.ok) return []
-    const data = (await response.json()) as Array<any>
+    const data = (await response.json()) as Array<IngredientCocktailJoinItem>
 
     return (data || [])
       .map(item => {

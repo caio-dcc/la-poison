@@ -1,5 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
-import { Metadata, ResolvingMetadata } from 'next'
+import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { generateSEOMetadata, buildOGImageUrl, buildCanonicalUrl } from '@/lib/seo/metadata'
@@ -10,7 +10,7 @@ import {
 } from '@/lib/seo/jsonld'
 import { truncateDescription, formatTitle } from '@/lib/seo/metadata'
 import { IngredientsCard } from '@/components/drinks/IngredientsCard'
-import { getInstructions, getIngredientName, getCategoryName } from '@/lib/i18n/translate'
+import { getInstructions, getCategoryName } from '@/lib/i18n/translate'
 
 interface CocktailRow {
   id: string
@@ -33,10 +33,16 @@ interface Category {
   slug: string
 }
 
-interface Ingredient {
+interface IngredientData {
   name: string
   name_i18n?: Record<string, string> | null
   slug: string
+}
+
+interface IngredientJoinItem {
+  ingredients: IngredientData | IngredientData[] | null
+  measure_text: string | null
+  amount_ml: number | null
 }
 
 interface CocktailWithIngredients extends CocktailRow {
@@ -106,10 +112,10 @@ async function getCocktail(slug: string): Promise<CocktailWithIngredients | null
       }
     )
     if (!response.ok) return null
-    const data = (await response.json()) as Array<any>
+    const data = (await response.json()) as Array<CocktailRow & { categories: Category }>
     if (!data.length) return null
 
-    const cocktailRow = data[0] as CocktailRow & { categories: Category }
+    const cocktailRow = data[0]
 
     // Fetch ingredients via REST API
     const ingredientResponse = await fetch(
@@ -119,10 +125,10 @@ async function getCocktail(slug: string): Promise<CocktailWithIngredients | null
       }
     )
     if (!ingredientResponse.ok) return null
-    const ingredientData = (await ingredientResponse.json()) as Array<any>
+    const ingredientData = (await ingredientResponse.json()) as Array<IngredientJoinItem>
 
     const ingredients = (ingredientData || []).map(item => {
-      const ing = item.ingredients as Ingredient | Ingredient[] | null
+      const ing = item.ingredients
       const resolved = Array.isArray(ing) ? ing[0] : ing
       return {
         name: resolved?.name || 'Unknown',
