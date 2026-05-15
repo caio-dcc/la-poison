@@ -80,7 +80,7 @@ export default async function RootLayout({
       lang={lang}
       className={`${merriweather.variable} ${merriweatherSans.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">
+      <body className="min-h-full flex flex-col relative bg-evergreen">
         <RootLayoutWrapper locale={locale}>{children}</RootLayoutWrapper>
       </body>
     </html>

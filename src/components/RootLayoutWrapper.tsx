@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { LanguageProvider } from '@/contexts/LanguageContext'
 import { LanguageSelector } from '@/components/LanguageSelector'
+import { SmokeBackground } from '@/components/ui/SmokeBackground'
 
 function Header({ locale }: { locale: string }) {
   const navigationLabels = {
@@ -52,6 +53,7 @@ export function RootLayoutWrapper({
 }) {
   return (
     <LanguageProvider>
+      <SmokeBackground smokeColor="#F1F5F2" />
       <Header locale={locale} />
       {children}
     </LanguageProvider>
