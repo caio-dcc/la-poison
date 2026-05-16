@@ -2,6 +2,69 @@ import { createHmac } from 'crypto'
 import { Anthropic } from '@anthropic-ai/sdk'
 import { createClient as createServerClient } from '@/utils/supabase/server'
 
+interface CocktailSearchResult {
+  name: string
+  category: string | null
+  instructions: string | null
+}
+
+async function fetchRelevantCocktails(message: string): Promise<CocktailSearchResult[]> {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+  if (!supabaseUrl || !supabaseKey) return []
+
+  try {
+    // Extract meaningful words (>3 chars, skip common stopwords)
+    const stopwords = new Set([
+      'what',
+      'which',
+      'make',
+      'with',
+      'that',
+      'have',
+      'from',
+      'this',
+      'they',
+      'will',
+      'been',
+      'your',
+      'some',
+      'more',
+      'also',
+      'into',
+      'than',
+      'then',
+      'like',
+      'just',
+      'does',
+      'about',
+      'how',
+      'can',
+      'give',
+      'want',
+      'need',
+    ])
+    const terms = message
+      .toLowerCase()
+      .replace(/[^a-z\s]/g, ' ')
+      .split(/\s+/)
+      .filter(w => w.length > 3 && !stopwords.has(w))
+      .slice(0, 4)
+
+    if (terms.length === 0) return []
+
+    // Search by name or category match (OR across terms)
+    const orFilters = terms.flatMap(t => [`name.ilike.*${t}*`, `category.ilike.*${t}*`]).join(',')
+
+    const url = `${supabaseUrl}/rest/v1/cocktails?or=(${encodeURIComponent(orFilters)})&select=name,category,instructions&limit=5`
+    const res = await fetch(url, { headers: { apikey: supabaseKey } })
+    if (!res.ok) return []
+    return (await res.json()) as CocktailSearchResult[]
+  } catch {
+    return []
+  }
+}
+
 function hashIp(ip: string): string {
   const secret = process.env.IP_HASH_SECRET || 'default-secret'
   return createHmac('sha256', secret).update(ip).digest('hex')
@@ -114,11 +177,23 @@ export async function POST(req: Request) {
       apiKey: process.env.ANTHROPIC_API_KEY,
     })
 
+    // RAG: fetch relevant cocktails from DB to ground the response
+    const relevantCocktails = await fetchRelevantCocktails(message)
+    const ragContext =
+      relevantCocktails.length > 0
+        ? `\n\nRelevant cocktails from our database:\n${relevantCocktails
+            .map(
+              c =>
+                `- ${c.name}${c.category ? ` (${c.category})` : ''}: ${c.instructions?.slice(0, 200) || 'No instructions available'}`
+            )
+            .join('\n')}`
+        : ''
+
     // Create streaming message
     const stream = await anthropic.messages.stream({
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 1024,
-      system: `You are LaPoison, an expert cocktail assistant. You help users find recipes, suggest drinks based on ingredients they have, explain cocktail techniques, and share bartending tips. Be friendly, concise, and knowledgeable. Keep responses to 1-2 paragraphs unless asked for more detail.`,
+      system: `You are LaPoison, an expert cocktail assistant. You help users find recipes, suggest drinks based on ingredients they have, explain cocktail techniques, and share bartending tips. Be friendly, concise, and knowledgeable. Keep responses to 1-2 paragraphs unless asked for more detail.${ragContext}`,
       messages: [{ role: 'user', content: message }],
     })
 

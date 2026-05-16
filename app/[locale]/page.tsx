@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { Metadata } from 'next'
-import { generateSEOMetadata, buildCanonicalUrl } from '@/lib/seo/metadata'
+import { generateSEOMetadata } from '@/lib/seo/metadata'
 
 const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://lapoison.com'
 
@@ -58,7 +58,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
   const page = content[locale as keyof typeof content] || content.pt
 
   return (
-    <main className="flex-1 bg-gradient-to-b from-evergreen to-evergreen/80 text-porcelain">
+    <main className="flex-1 text-porcelain">
       <div className="max-w-5xl mx-auto px-4 py-24 text-center">
         <h1
           className="text-5xl md:text-6xl font-bold mb-6"

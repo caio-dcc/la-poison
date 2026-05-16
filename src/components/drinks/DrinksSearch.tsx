@@ -198,7 +198,7 @@ export function DrinksSearch({
       )}
 
       {/* Results count */}
-      <p className="text-sm text-shadow-grey/60 mb-4">
+      <p className="text-sm text-porcelain/60 mb-4">
         {filtered.length} {dict.of} {cocktails.length} {dict.cocktails}
       </p>
 
@@ -237,7 +237,7 @@ export function DrinksSearch({
         </div>
       ) : (
         <div className="text-center py-20">
-          <p className="text-shadow-grey/60 mb-4">{dict.noCocktailsFound}</p>
+          <p className="text-porcelain/60 mb-4">{dict.noCocktailsFound}</p>
           <button
             onClick={handleReset}
             className="px-5 py-2 bg-evergreen text-porcelain rounded-lg text-sm font-medium hover:bg-hunter-green transition-colors"

@@ -18,21 +18,8 @@ export function getI18nValue(
 /**
  * Get instructions in the specified locale from cocktail columns
  */
-export function getInstructions(
-  cocktail: {
-    instructions_pt?: string | null
-    instructions_en?: string | null
-    instructions_es?: string | null
-  },
-  locale: string
-): string {
-  const columnMap: Record<string, keyof typeof cocktail> = {
-    pt: 'instructions_pt',
-    en: 'instructions_en',
-    es: 'instructions_es',
-  }
-  const column = columnMap[locale] || 'instructions_pt'
-  return cocktail[column] || ''
+export function getInstructions(cocktail: { instructions?: string | null }): string {
+  return cocktail.instructions || ''
 }
 
 /**

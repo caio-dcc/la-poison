@@ -2,7 +2,7 @@
   "version": "1.0",
   "last_updated": "2026-05-15T12:00:00.000Z",
   "last_agent": "claude-code",
-  "current_task": "T-034-SMOKE-BG",
+  "current_task": null,
   "completed_tasks": [
     {
       "id": "T-001",
@@ -233,6 +233,39 @@
   "tasks_queue": [],
   "session_log": [
     {
+      "timestamp": "2026-05-15T19:00:00Z",
+      "agent": "claude-code",
+      "action": "completed_task",
+      "task_id": "T-035-PHASE5",
+      "files_changed": [
+        "app/[locale]/conta/page.tsx",
+        "app/[locale]/meus-bares/page.tsx",
+        "app/[locale]/meus-bares/[id]/page.tsx",
+        "app/[locale]/inventario/page.tsx",
+        "app/api/auth/logout/route.ts",
+        "src/components/AuthNav.tsx",
+        "src/components/RootLayoutWrapper.tsx",
+        "app/robots.ts"
+      ],
+      "notes": "Phase 5 complete: authenticated user surface. /conta (account dashboard with subscription status + billing portal link), /meus-bares (bar list with inventory counts), /meus-bares/[id] (inventory detail), /inventario (quick bar selector). AuthNav component shows bars/account links only when logged in. Logout endpoint added. All routes middleware-protected. Build clean, 1326 pages."
+    },
+    {
+      "timestamp": "2026-05-15T18:30:00Z",
+      "agent": "claude-code",
+      "action": "completed_task",
+      "task_id": "T-034-PHASE4-PHASE6",
+      "files_changed": [
+        "app/api/chatbot/route.ts",
+        "app/[locale]/not-found.tsx",
+        "app/not-found.tsx",
+        "src/components/Footer.tsx",
+        "src/components/RootLayoutWrapper.tsx",
+        "app/[locale]/privacy/page.tsx",
+        "app/[locale]/terms/page.tsx"
+      ],
+      "notes": "Phase 4: RAG wired into chatbot via Supabase FTS (ilike search on name/category, no embedding needed at query time). Phase 6: locale-aware not-found pages (root + [locale]), Footer component with privacy/terms links (AdSense-ready), privacy and terms pages in PT/EN/ES. Build clean, no errors."
+    },
+    {
       "timestamp": "2026-05-14T05:30:00.000Z",
       "agent": "claude-code",
       "action": "completed_task",
@@ -426,5 +459,5 @@
     "arch_ssg_strategy",
     "pricing_model"
   ],
-  "status": "T-034 complete. SmokeBackground WebGL component integrated site-wide with brand colors (porcelain #F1F5F2 on evergreen #14281D). Accessibility: prefers-reduced-motion fallback to static bg. Build passes with 1310+ pages prerendered. Next: Phase 4 (RAG chatbot) + Phase 5 (auth user surface)."
+  "status": "✅ V1 CORE COMPLETE. Phase 4 (RAG chatbot), Phase 5 (account surface), Phase 6 (polish). Build 1326 pages. Ready for: Stripe wiring, data seeding, production launch."
 }

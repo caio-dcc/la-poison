@@ -10,27 +10,19 @@ import {
 } from '@/lib/seo/jsonld'
 import { truncateDescription, formatTitle } from '@/lib/seo/metadata'
 import { IngredientsCard } from '@/components/drinks/IngredientsCard'
-import { getInstructions, getCategoryName } from '@/lib/i18n/translate'
+import { getInstructions } from '@/lib/i18n/translate'
 
 interface CocktailRow {
   id: string
   name: string
   slug: string
-  instructions_pt: string | null
-  instructions_en: string | null
-  instructions_es: string | null
+  instructions: string | null
+  category: string | null
   category_id: string | null
   thumb_url: string
   abv_estimate?: number
   difficulty?: number
   prep_time_minutes?: number
-}
-
-interface Category {
-  id: string
-  name: string
-  name_i18n?: Record<string, string> | null
-  slug: string
 }
 
 interface IngredientData {
@@ -46,7 +38,6 @@ interface IngredientJoinItem {
 }
 
 interface CocktailWithIngredients extends CocktailRow {
-  category?: Category
   ingredients: Array<{
     name: string
     name_i18n?: Record<string, string> | null
@@ -104,30 +95,30 @@ async function getCocktail(slug: string): Promise<CocktailWithIngredients | null
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
     if (!supabaseUrl || !supabaseKey) return null
 
-    // Use REST API to avoid cookies() during SSG
     const response = await fetch(
-      `${supabaseUrl}/rest/v1/cocktails?slug=eq.${slug}&select=id,name,slug,instructions_pt,instructions_en,instructions_es,category_id,thumb_url,abv_estimate,difficulty,prep_time_minutes,categories(id,name,name_i18n,slug)`,
+      `${supabaseUrl}/rest/v1/cocktails?slug=eq.${slug}&select=id,name,slug,instructions,category,category_id,thumb_url,abv_estimate,difficulty,prep_time_minutes`,
       {
         headers: { apikey: supabaseKey },
       }
     )
     if (!response.ok) return null
-    const data = (await response.json()) as Array<CocktailRow & { categories: Category }>
+    const data = (await response.json()) as Array<CocktailRow>
     if (!data.length) return null
 
     const cocktailRow = data[0]
 
-    // Fetch ingredients via REST API
+    // Fetch ingredients — table may be empty if not yet seeded
     const ingredientResponse = await fetch(
       `${supabaseUrl}/rest/v1/cocktail_ingredients?cocktail_id=eq.${cocktailRow.id}&order=order_index.asc&select=measure_text,amount_ml,ingredients(name,name_i18n,slug)`,
       {
         headers: { apikey: supabaseKey },
       }
     )
-    if (!ingredientResponse.ok) return null
-    const ingredientData = (await ingredientResponse.json()) as Array<IngredientJoinItem>
+    const ingredientData: Array<IngredientJoinItem> = ingredientResponse.ok
+      ? ((await ingredientResponse.json()) as Array<IngredientJoinItem>)
+      : []
 
-    const ingredients = (ingredientData || []).map(item => {
+    const ingredients = ingredientData.map(item => {
       const ing = item.ingredients
       const resolved = Array.isArray(ing) ? ing[0] : ing
       return {
@@ -141,7 +132,6 @@ async function getCocktail(slug: string): Promise<CocktailWithIngredients | null
 
     return {
       ...cocktailRow,
-      category: cocktailRow.categories,
       ingredients,
     }
   } catch (err) {
@@ -191,7 +181,7 @@ export async function generateMetadata({
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
   const pathname = `/${locale}/drinks/${slug}`
   const instructions = getInstructions(cocktail, locale)
-  const categoryName = cocktail.category ? getCategoryName(cocktail.category, locale) : ''
+  const categoryName = cocktail.category || ''
   const description = truncateDescription(`${cocktail.name} — ${categoryName}. ${instructions}`)
   const localeKey = locale as keyof typeof localeToLang
   const lang = (localeToLang[localeKey] || 'pt-BR') as 'pt-BR' | 'en-US' | 'es-ES'
@@ -241,7 +231,7 @@ export default async function DrinkPage({
   const pathname = `/${locale}/drinks/${slug}`
   const canonicalUrl = buildCanonicalUrl(pathname)
 
-  const categoryName = cocktail.category ? getCategoryName(cocktail.category, locale) : ''
+  const categoryName = cocktail.category || ''
   const instructions = getInstructions(cocktail, locale)
 
   const recipeSchema = generateRecipeSchema({
@@ -303,7 +293,7 @@ export default async function DrinkPage({
               <div className="flex items-center justify-between">
                 <span className="text-shadow-grey/70">{labels.category}</span>
                 <Link
-                  href={`/${locale}/drinks/category/${(cocktail.category?.slug || categoryName).toLowerCase().replace(/\s+/g, '-')}`}
+                  href={`/${locale}/drinks/category/${categoryName.toLowerCase().replace(/\s+/g, '-')}`}
                   className="font-medium text-evergreen hover:text-hunter-green transition-colors"
                 >
                   {categoryName}

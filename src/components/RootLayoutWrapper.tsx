@@ -1,11 +1,11 @@
-'use client'
-
 import Link from 'next/link'
 import { LanguageProvider } from '@/contexts/LanguageContext'
 import { LanguageSelector } from '@/components/LanguageSelector'
 import { SmokeBackground } from '@/components/ui/SmokeBackground'
+import { Footer } from '@/components/Footer'
+import { AuthNav } from '@/components/AuthNav'
 
-function Header({ locale }: { locale: string }) {
+async function Header({ locale }: { locale: string }) {
   const navigationLabels = {
     pt: { drinks: 'Drinks', pricing: 'Preços' },
     en: { drinks: 'Drinks', pricing: 'Pricing' },
@@ -37,6 +37,7 @@ function Header({ locale }: { locale: string }) {
           >
             {labels.pricing}
           </Link>
+          <AuthNav locale={locale} />
         </div>
         <LanguageSelector currentLocale={locale} />
       </nav>
@@ -53,9 +54,10 @@ export function RootLayoutWrapper({
 }) {
   return (
     <LanguageProvider>
-      <SmokeBackground smokeColor="#F1F5F2" />
+      <SmokeBackground smokeColor="#3A7D44" />
       <Header locale={locale} />
       {children}
+      <Footer locale={locale} />
     </LanguageProvider>
   )
 }
