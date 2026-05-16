@@ -180,7 +180,7 @@ export async function generateMetadata({
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
   const pathname = `/${locale}/drinks/${slug}`
-  const instructions = getInstructions(cocktail, locale)
+  const instructions = getInstructions(cocktail)
   const categoryName = cocktail.category || ''
   const description = truncateDescription(`${cocktail.name} — ${categoryName}. ${instructions}`)
   const localeKey = locale as keyof typeof localeToLang
@@ -232,7 +232,7 @@ export default async function DrinkPage({
   const canonicalUrl = buildCanonicalUrl(pathname)
 
   const categoryName = cocktail.category || ''
-  const instructions = getInstructions(cocktail, locale)
+  const instructions = getInstructions(cocktail)
 
   const recipeSchema = generateRecipeSchema({
     id: cocktail.id,
