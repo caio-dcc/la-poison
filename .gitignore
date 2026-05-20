@@ -1,6 +1,8 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# ══════════════════════════════════════════════════════════════════════════════
+# LaPoison .gitignore — Production-safe exclusions
+# ══════════════════════════════════════════════════════════════════════════════
 
-# dependencies
+# ─── Dependencies ─────────────────────────────────────────────────────────────
 /node_modules
 /.pnp
 .pnp.*
@@ -10,49 +12,85 @@
 !.yarn/releases
 !.yarn/versions
 
-# testing
+# ─── Testing ──────────────────────────────────────────────────────────────────
 /coverage
+/test-results
+/playwright-report
+/blob-report
 
-# next.js
+# ─── Next.js ──────────────────────────────────────────────────────────────────
 /.next/
 /out/
 
-# production
+# ─── Production build ────────────────────────────────────────────────────────
 /build
+/dist
 
-# misc
+# ─── OS artifacts ─────────────────────────────────────────────────────────────
 .DS_Store
-*.pem
+Thumbs.db
+Desktop.ini
 
-# debug
+# ─── Private keys ─────────────────────────────────────────────────────────────
+*.pem
+*.key
+*.p12
+*.pfx
+
+# ─── Debug logs ───────────────────────────────────────────────────────────────
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+dev.log
+*.log
 
-# env files (NEVER commit secrets)
+# ─── Environment files (NEVER commit secrets) ────────────────────────────────
 .env
 .env.local
 .env.*.local
 .env.production
 .env.production.local
+.env.development
+.env.development.local
 
-# vercel
+# ─── Vercel ───────────────────────────────────────────────────────────────────
 .vercel
 
-# typescript
+# ─── TypeScript build artifacts ───────────────────────────────────────────────
 *.tsbuildinfo
 next-env.d.ts
 
-# dev logs
-dev.log
-
-# claude code local settings (may contain credentials)
-.claude/
-
-# turbo cache
+# ─── Turbo cache ──────────────────────────────────────────────────────────────
 .turbo/
 
-# supabase CLI local state
+# ─── Supabase CLI local state ────────────────────────────────────────────────
 supabase/.branches/
 supabase/.temp/
+
+# ─── Database migrations (schema managed via Supabase Dashboard) ─────────────
+supabase/migrations/
+
+# ─── Agent / IDE config files (not needed for production) ─────────────────────
+.claude/
+.antigravity/
+.cursor/
+AGENTS.md
+CLAUDE.md
+AGENT_STATE.json
+
+# ─── Documentation (agent-generated, not needed for production) ──────────────
+# README.md is kept (explicitly NOT ignored)
+docs/AGENT_STATE_SCHEMA.md
+docs/API_SPECT.md
+docs/CACHE.md
+docs/RATE_LIMIT_SPEC.md
+docs/ROADMAP.md
+docs/SEO_CHECKLIST.md
+docs/background-setup.md
+docs/migrations/
+
+# ─── Pipeline data (large cached artifacts, not needed in repo) ──────────────
+scripts/data/raw/
+scripts/data/images/
+scripts/data/i18n/

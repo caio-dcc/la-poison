@@ -15,6 +15,13 @@ function getLocaleFromPathname(pathname: string): string {
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
+
+  // API routes are locale-agnostic; never rewrite them
+  if (pathname.startsWith('/api/')) {
+    const { response } = await createClient(request)
+    return response
+  }
+
   const locale = getLocaleFromPathname(pathname)
 
   // Redirect root to default locale

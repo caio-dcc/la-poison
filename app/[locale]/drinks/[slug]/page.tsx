@@ -10,13 +10,31 @@ import {
 } from '@/lib/seo/jsonld'
 import { truncateDescription, formatTitle } from '@/lib/seo/metadata'
 import { IngredientsCard } from '@/components/drinks/IngredientsCard'
-import { getInstructions } from '@/lib/i18n/translate'
+import {
+  getInstructions,
+  getDescription,
+  getHistory,
+  getFunFact,
+  getCategoryName,
+} from '@/lib/i18n/translate'
 
 interface CocktailRow {
   id: string
   name: string
   slug: string
   instructions: string | null
+  instructions_en?: string | null
+  instructions_pt?: string | null
+  instructions_es?: string | null
+  description_en?: string | null
+  description_pt?: string | null
+  description_es?: string | null
+  history_en?: string | null
+  history_pt?: string | null
+  history_es?: string | null
+  fun_fact_en?: string | null
+  fun_fact_pt?: string | null
+  fun_fact_es?: string | null
   category: string | null
   category_id: string | null
   thumb_url: string
@@ -37,6 +55,13 @@ interface IngredientJoinItem {
   amount_ml: number | null
 }
 
+interface CategoryRow {
+  id: string
+  name: string
+  name_i18n?: Record<string, string> | null
+  slug: string
+}
+
 interface CocktailWithIngredients extends CocktailRow {
   ingredients: Array<{
     name: string
@@ -45,6 +70,7 @@ interface CocktailWithIngredients extends CocktailRow {
     slug?: string
     amount_ml?: number | null
   }>
+  categoryRecord: CategoryRow | null
 }
 
 const localeToLang = {
@@ -62,6 +88,9 @@ const pageLabels = {
     abv: 'ABV',
     prepTime: 'Tempo de preparo',
     instructions: 'Modo de preparo',
+    about: 'Sobre',
+    history: 'História',
+    funFact: 'Curiosidade',
     notFound: 'Drink não encontrado',
   },
   en: {
@@ -72,6 +101,9 @@ const pageLabels = {
     abv: 'ABV',
     prepTime: 'Prep time',
     instructions: 'Instructions',
+    about: 'About',
+    history: 'History',
+    funFact: 'Fun fact',
     notFound: 'Drink not found',
   },
   es: {
@@ -82,6 +114,9 @@ const pageLabels = {
     abv: 'ABV',
     prepTime: 'Tiempo de preparación',
     instructions: 'Preparación',
+    about: 'Sobre',
+    history: 'Historia',
+    funFact: 'Curiosidad',
     notFound: 'Bebida no encontrada',
   },
 }
@@ -89,17 +124,69 @@ const pageLabels = {
 export const dynamicParams = true
 export const revalidate = 3600
 
-async function getCocktail(slug: string): Promise<CocktailWithIngredients | null> {
+// Build a defensive column-select string: we list translation columns
+// but if `instructions_pt`/`_es` don't exist in the DB yet (migration 006
+// pending), PostgREST returns a 400. We probe once at module load.
+let cachedColumnSelect: string | null = null
+async function getCocktailColumnSelect(): Promise<string> {
+  if (cachedColumnSelect) return cachedColumnSelect
+
+  const baseCols = [
+    'id',
+    'name',
+    'slug',
+    'instructions',
+    'category',
+    'category_id',
+    'thumb_url',
+    'abv_estimate',
+    'difficulty',
+    'prep_time_minutes',
+    'description_pt',
+    'description_en',
+    'description_es',
+    'history_pt',
+    'history_en',
+    'history_es',
+    'fun_fact_pt',
+    'fun_fact_en',
+    'fun_fact_es',
+  ]
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+  if (!supabaseUrl || !supabaseKey) {
+    cachedColumnSelect = baseCols.join(',')
+    return cachedColumnSelect
+  }
+
+  // Probe optional cols individually
+  const optionalCols = ['instructions_en', 'instructions_pt', 'instructions_es']
+  const present: string[] = []
+  for (const col of optionalCols) {
+    try {
+      const r = await fetch(`${supabaseUrl}/rest/v1/cocktails?select=${col}&limit=1`, {
+        headers: { apikey: supabaseKey },
+      })
+      if (r.ok) present.push(col)
+    } catch {
+      /* skip */
+    }
+  }
+  cachedColumnSelect = [...baseCols, ...present].join(',')
+  return cachedColumnSelect
+}
+
+async function getCocktail(slug: string, locale: string): Promise<CocktailWithIngredients | null> {
   try {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
     if (!supabaseUrl || !supabaseKey) return null
 
+    const select = await getCocktailColumnSelect()
     const response = await fetch(
-      `${supabaseUrl}/rest/v1/cocktails?slug=eq.${slug}&select=id,name,slug,instructions,category,category_id,thumb_url,abv_estimate,difficulty,prep_time_minutes`,
-      {
-        headers: { apikey: supabaseKey },
-      }
+      `${supabaseUrl}/rest/v1/cocktails?slug=eq.${slug}&select=${select}`,
+      { headers: { apikey: supabaseKey } }
     )
     if (!response.ok) return null
     const data = (await response.json()) as Array<CocktailRow>
@@ -107,12 +194,10 @@ async function getCocktail(slug: string): Promise<CocktailWithIngredients | null
 
     const cocktailRow = data[0]
 
-    // Fetch ingredients — table may be empty if not yet seeded
+    // Fetch ingredients
     const ingredientResponse = await fetch(
-      `${supabaseUrl}/rest/v1/cocktail_ingredients?cocktail_id=eq.${cocktailRow.id}&order=order_index.asc&select=measure_text,amount_ml,ingredients(name,name_i18n,slug)`,
-      {
-        headers: { apikey: supabaseKey },
-      }
+      `${supabaseUrl}/rest/v1/cocktail_ingredients?cocktail_id=eq.${cocktailRow.id}&select=measure_text,amount_ml,ingredients(name,name_i18n,slug)`,
+      { headers: { apikey: supabaseKey } }
     )
     const ingredientData: Array<IngredientJoinItem> = ingredientResponse.ok
       ? ((await ingredientResponse.json()) as Array<IngredientJoinItem>)
@@ -130,9 +215,35 @@ async function getCocktail(slug: string): Promise<CocktailWithIngredients | null
       }
     })
 
+    // Fetch category (for i18n + slug)
+    let categoryRecord: CategoryRow | null = null
+    if (cocktailRow.category_id) {
+      const catRes = await fetch(
+        `${supabaseUrl}/rest/v1/categories?id=eq.${cocktailRow.category_id}&select=id,name,name_i18n,slug`,
+        { headers: { apikey: supabaseKey } }
+      )
+      if (catRes.ok) {
+        const rows = (await catRes.json()) as CategoryRow[]
+        categoryRecord = rows[0] ?? null
+      }
+    }
+    if (!categoryRecord && cocktailRow.category) {
+      const catRes = await fetch(
+        `${supabaseUrl}/rest/v1/categories?name=eq.${encodeURIComponent(cocktailRow.category)}&select=id,name,name_i18n,slug&limit=1`,
+        { headers: { apikey: supabaseKey } }
+      )
+      if (catRes.ok) {
+        const rows = (await catRes.json()) as CategoryRow[]
+        categoryRecord = rows[0] ?? null
+      }
+    }
+
+    void locale // reserved for future per-locale filtering
+
     return {
       ...cocktailRow,
       ingredients,
+      categoryRecord,
     }
   } catch (err) {
     console.error('Failed to fetch cocktail:', err)
@@ -175,14 +286,18 @@ export async function generateMetadata({
   params: Promise<{ locale: string; slug: string }>
 }): Promise<Metadata> {
   const { locale, slug } = await params
-  const cocktail = await getCocktail(slug)
+  const cocktail = await getCocktail(slug, locale)
   if (!cocktail) return { title: 'Drink not found' }
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
   const pathname = `/${locale}/drinks/${slug}`
-  const instructions = getInstructions(cocktail)
-  const categoryName = cocktail.category || ''
-  const description = truncateDescription(`${cocktail.name} — ${categoryName}. ${instructions}`)
+  const categoryName = cocktail.categoryRecord
+    ? getCategoryName(cocktail.categoryRecord, locale)
+    : cocktail.category || ''
+  const description = truncateDescription(
+    getDescription(cocktail, locale) ||
+      `${cocktail.name} — ${categoryName}. ${getInstructions(cocktail, locale)}`
+  )
   const localeKey = locale as keyof typeof localeToLang
   const lang = (localeToLang[localeKey] || 'pt-BR') as 'pt-BR' | 'en-US' | 'es-ES'
 
@@ -223,7 +338,7 @@ export default async function DrinkPage({
   params: Promise<{ locale: string; slug: string }>
 }) {
   const { locale, slug } = await params
-  const cocktail = await getCocktail(slug)
+  const cocktail = await getCocktail(slug, locale)
   if (!cocktail) notFound()
 
   const labels = pageLabels[locale as keyof typeof pageLabels] || pageLabels.pt
@@ -231,13 +346,22 @@ export default async function DrinkPage({
   const pathname = `/${locale}/drinks/${slug}`
   const canonicalUrl = buildCanonicalUrl(pathname)
 
-  const categoryName = cocktail.category || ''
-  const instructions = getInstructions(cocktail)
+  const categoryName = cocktail.categoryRecord
+    ? getCategoryName(cocktail.categoryRecord, locale)
+    : cocktail.category || ''
+  const categorySlug =
+    cocktail.categoryRecord?.slug ||
+    (cocktail.category ? cocktail.category.toLowerCase().replace(/\s+/g, '-') : '')
+
+  const instructions = getInstructions(cocktail, locale)
+  const description = getDescription(cocktail, locale)
+  const history = getHistory(cocktail, locale)
+  const funFact = getFunFact(cocktail, locale)
 
   const recipeSchema = generateRecipeSchema({
     id: cocktail.id,
     name: cocktail.name,
-    description: instructions || '',
+    description: description || instructions || '',
     image: cocktail.thumb_url,
     canonicalUrl,
     ingredients: cocktail.ingredients || [],
@@ -290,15 +414,21 @@ export default async function DrinkPage({
             </div>
 
             <div className="bg-white rounded-2xl shadow-sm p-5 space-y-3 text-sm">
-              <div className="flex items-center justify-between">
-                <span className="text-shadow-grey/70">{labels.category}</span>
-                <Link
-                  href={`/${locale}/drinks/category/${categoryName.toLowerCase().replace(/\s+/g, '-')}`}
-                  className="font-medium text-evergreen hover:text-hunter-green transition-colors"
-                >
-                  {categoryName}
-                </Link>
-              </div>
+              {categoryName && (
+                <div className="flex items-center justify-between">
+                  <span className="text-shadow-grey/70">{labels.category}</span>
+                  {categorySlug ? (
+                    <Link
+                      href={`/${locale}/drinks/category/${categorySlug}`}
+                      className="font-medium text-evergreen hover:text-hunter-green transition-colors"
+                    >
+                      {categoryName}
+                    </Link>
+                  ) : (
+                    <span className="font-medium text-evergreen">{categoryName}</span>
+                  )}
+                </div>
+              )}
               {cocktail.difficulty && (
                 <div className="flex items-center justify-between">
                   <span className="text-shadow-grey/70">{labels.difficulty}</span>
@@ -327,8 +457,15 @@ export default async function DrinkPage({
               <h1 className="text-3xl md:text-4xl font-bold text-evergreen mb-1">
                 {cocktail.name}
               </h1>
-              <p className="text-hunter-green">{categoryName}</p>
+              {categoryName && <p className="text-hunter-green">{categoryName}</p>}
             </div>
+
+            {description && (
+              <div className="bg-white rounded-2xl shadow-sm p-6">
+                <h2 className="text-lg font-bold text-evergreen mb-3">{labels.about}</h2>
+                <p className="text-shadow-grey leading-relaxed">{description}</p>
+              </div>
+            )}
 
             {cocktail.ingredients.length > 0 && (
               <IngredientsCard ingredients={cocktail.ingredients} locale={locale} />
@@ -348,6 +485,20 @@ export default async function DrinkPage({
                 ) : (
                   <p className="text-shadow-grey leading-relaxed">{instructions}</p>
                 )}
+              </div>
+            )}
+
+            {history && (
+              <div className="bg-white rounded-2xl shadow-sm p-6">
+                <h2 className="text-lg font-bold text-evergreen mb-3">{labels.history}</h2>
+                <p className="text-shadow-grey leading-relaxed">{history}</p>
+              </div>
+            )}
+
+            {funFact && (
+              <div className="bg-hunter-green/10 border border-hunter-green/30 rounded-2xl p-6">
+                <h2 className="text-lg font-bold text-evergreen mb-2">{labels.funFact}</h2>
+                <p className="text-shadow-grey leading-relaxed">{funFact}</p>
               </div>
             )}
           </div>
