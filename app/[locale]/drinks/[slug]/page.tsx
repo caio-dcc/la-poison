@@ -1,7 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import Link from 'next/link'
 import { generateSEOMetadata, buildOGImageUrl, buildCanonicalUrl } from '@/lib/seo/metadata'
 import {
   generateRecipeSchema,
@@ -16,6 +15,7 @@ import { YouTubeLink } from '@/components/drinks/YouTubeLink'
 import { AskChatbotButton } from '@/components/drinks/AskChatbotButton'
 import { createClient } from '@/utils/supabase/server'
 import { InteractiveSection } from './InteractiveSection'
+import { DrinkBento } from '@/components/drinks/DrinkBento'
 import {
   getInstructions,
   getDescription,
@@ -347,18 +347,6 @@ export async function generateMetadata({
   )
 }
 
-function DifficultyStars({ level }: { level: number }) {
-  return (
-    <div className="flex gap-0.5">
-      {Array.from({ length: 5 }).map((_, i) => (
-        <span key={i} className={i < level ? 'text-hunter-green' : 'text-gray-300'}>
-          ★
-        </span>
-      ))}
-    </div>
-  )
-}
-
 export default async function DrinkPage({
   params,
 }: {
@@ -396,9 +384,6 @@ export default async function DrinkPage({
     cocktail.categoryRecord || { name: cocktail.category || undefined },
     locale
   )
-  const categorySlug =
-    cocktail.categoryRecord?.slug ||
-    (cocktail.category ? cocktail.category.toLowerCase().replace(/\s+/g, '-') : '')
 
   const instructions = getInstructions(cocktail, locale)
   const description = getDescription(cocktail, locale)
@@ -434,209 +419,112 @@ export default async function DrinkPage({
     <main className="min-h-screen pt-6 md:pt-10 pb-16 relative">
       <LiquidAurora />
       {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-20">
-        <div className="flex flex-col lg:flex-row gap-6">
-          {/* Left column: title + image + meta */}
-          <div className="w-full lg:w-1/4 flex-shrink-0 space-y-4">
-            <div>
-              <h1 className="text-4xl md:text-5xl font-bold text-porcelain mb-1 drop-shadow-sm">
-                {cocktail.name}
-              </h1>
-              {categoryName && (
-                <p className="text-porcelain/70 text-lg font-medium">{categoryName}</p>
-              )}
-            </div>
-            <div className="rounded-2xl overflow-hidden shadow-lg bg-evergreen/60 ring-1 ring-white/10 backdrop-blur-md">
-              <img
-                src={cocktail.thumb_url}
-                alt={cocktail.name}
-                className="w-full aspect-square object-cover"
-                loading="eager"
-              />
-            </div>
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 relative z-20">
+        {/* Header: Title + Category */}
+        <div className="mb-6">
+          <h1 className="text-4xl md:text-5xl font-bold text-porcelain mb-1 drop-shadow-sm">
+            {cocktail.name}
+          </h1>
+          {categoryName && <p className="text-porcelain/70 text-lg font-medium">{categoryName}</p>}
+        </div>
 
-            <div className="bg-evergreen/60 rounded-2xl shadow-lg ring-1 ring-white/10 backdrop-blur-md p-5 space-y-3 text-sm">
-              {categoryName && (
-                <div className="flex items-center justify-between">
-                  <span className="text-porcelain/70">{labels.category}</span>
-                  {categorySlug ? (
-                    <Link
-                      href={`/${locale}/drinks/category/${categorySlug}`}
-                      className="font-medium text-porcelain hover:text-white transition-colors"
+        {/* Main Image */}
+        <div className="rounded-2xl overflow-hidden shadow-lg bg-evergreen/60 ring-1 ring-white/10 backdrop-blur-md mb-8 max-w-md">
+          <img
+            src={cocktail.thumb_url}
+            alt={cocktail.name}
+            className="w-full aspect-square object-cover"
+            loading="eager"
+          />
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex flex-wrap gap-3 mb-8">
+          <DrinkQRCode
+            url={canonicalUrl}
+            drinkName={cocktail.name}
+            drinkImage={cocktail.thumb_url}
+            locale={locale}
+            isPro={isPro}
+            ingredients={cocktail.ingredients || []}
+            instructions={instructions}
+            description={description}
+            categoryName={categoryName}
+            difficulty={cocktail.difficulty || undefined}
+            abv={cocktail.abv_estimate || undefined}
+            prepTime={cocktail.prep_time_minutes || undefined}
+          />
+          <AskChatbotButton drinkName={cocktail.name} locale={locale} />
+        </div>
+
+        {/* Drink Stats Bento Grid */}
+        <div className="mb-8">
+          <DrinkBento cocktail={cocktail} categoryName={categoryName} locale={locale} />
+        </div>
+
+        {/* Content Sections (compact) */}
+        <div className="space-y-5 mb-8">
+          {/* About */}
+          {description && (
+            <div className="bg-evergreen/60 rounded-xl shadow-lg ring-1 ring-white/10 backdrop-blur-md p-4 md:p-5">
+              <h2 className="text-base font-bold text-porcelain mb-2">{labels.about}</h2>
+              <p className="text-porcelain/90 text-sm leading-relaxed">{description}</p>
+            </div>
+          )}
+
+          {/* Instructions */}
+          {instructions && (
+            <div className="bg-evergreen/60 rounded-xl shadow-lg ring-1 ring-white/10 backdrop-blur-md p-4 md:p-5">
+              <h2 className="text-base font-bold text-porcelain mb-3">{labels.instructions}</h2>
+              {instructionSteps.length > 1 ? (
+                <ol className="space-y-2 list-none">
+                  {instructionSteps.map((step, idx) => (
+                    <li
+                      key={idx}
+                      className="flex gap-2.5 text-porcelain/90 text-sm leading-relaxed"
                     >
-                      {categoryName}
-                    </Link>
-                  ) : (
-                    <span className="font-medium text-porcelain">{categoryName}</span>
-                  )}
-                </div>
-              )}
-              {cocktail.difficulty && (
-                <div className="flex items-center justify-between">
-                  <span className="text-porcelain/70">{labels.difficulty}</span>
-                  <DifficultyStars level={cocktail.difficulty} />
-                </div>
-              )}
-              {cocktail.abv_estimate && (
-                <div className="flex items-center justify-between">
-                  <span className="text-porcelain/70">{labels.abv}</span>
-                  <span className="font-medium text-porcelain">{cocktail.abv_estimate}%</span>
-                </div>
-              )}
-              {cocktail.prep_time_minutes && (
-                <div className="flex items-center justify-between">
-                  <span className="text-porcelain/70">{labels.prepTime}</span>
-                  <span className="font-medium text-porcelain">
-                    {cocktail.prep_time_minutes} min
-                  </span>
-                </div>
+                      <span className="flex-shrink-0 w-5 h-5 rounded-full bg-porcelain/20 text-porcelain text-xs font-bold flex items-center justify-center mt-0.5">
+                        {idx + 1}
+                      </span>
+                      <span>{step.trim()}</span>
+                    </li>
+                  ))}
+                </ol>
+              ) : (
+                <p className="text-porcelain/90 text-sm leading-relaxed">{instructions}</p>
               )}
             </div>
+          )}
 
-            <DrinkQRCode
-              url={canonicalUrl}
-              drinkName={cocktail.name}
-              drinkImage={cocktail.thumb_url}
-              locale={locale}
-              isPro={isPro}
-              ingredients={cocktail.ingredients || []}
-              instructions={instructions}
-              description={description}
-              categoryName={categoryName}
-              difficulty={cocktail.difficulty || undefined}
-              abv={cocktail.abv_estimate || undefined}
-              prepTime={cocktail.prep_time_minutes || undefined}
-            />
-
-            <AskChatbotButton drinkName={cocktail.name} locale={locale} />
-          </div>
-
-          {/* Right column: content */}
-          <div className="w-full lg:w-3/4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-stretch">
-              {/* Details card — always shown, spans full width on mobile */}
-              <div className="bg-evergreen/60 rounded-2xl shadow-lg ring-1 ring-white/10 backdrop-blur-md p-6 flex flex-col gap-4">
-                <h2 className="text-lg font-bold text-porcelain">{labels.details}</h2>
-                <div className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
-                  {categoryName && (
-                    <>
-                      <span className="text-porcelain/60">{labels.category}</span>
-                      {categorySlug ? (
-                        <Link
-                          href={`/${locale}/drinks/category/${categorySlug}`}
-                          className="font-medium text-porcelain hover:text-white transition-colors text-right"
-                        >
-                          {categoryName}
-                        </Link>
-                      ) : (
-                        <span className="font-medium text-porcelain text-right">
-                          {categoryName}
-                        </span>
-                      )}
-                    </>
-                  )}
-                  {'alcoholic' in cocktail &&
-                    cocktail.alcoholic !== null &&
-                    cocktail.alcoholic !== undefined && (
-                      <>
-                        <span className="text-porcelain/60">{labels.type}</span>
-                        <span className="font-medium text-porcelain text-right">
-                          {cocktail.alcoholic ? labels.alcoholic : labels.nonAlcoholic}
-                        </span>
-                      </>
-                    )}
-                  {cocktail.abv_estimate ? (
-                    <>
-                      <span className="text-porcelain/60">{labels.abv}</span>
-                      <span className="font-medium text-porcelain text-right">
-                        {cocktail.abv_estimate}%
-                      </span>
-                    </>
-                  ) : null}
-                  {cocktail.difficulty ? (
-                    <>
-                      <span className="text-porcelain/60">{labels.difficulty}</span>
-                      <div className="flex items-center justify-end gap-1.5">
-                        <span className="text-xs text-porcelain/70">
-                          {labels.difficultyLevels[cocktail.difficulty] ?? ''}
-                        </span>
-                        <DifficultyStars level={cocktail.difficulty} />
-                      </div>
-                    </>
-                  ) : null}
-                  {cocktail.prep_time_minutes ? (
-                    <>
-                      <span className="text-porcelain/60">{labels.prepTime}</span>
-                      <span className="font-medium text-porcelain text-right">
-                        {cocktail.prep_time_minutes} min
-                      </span>
-                    </>
-                  ) : null}
-                </div>
-              </div>
-
-              {/* Ingredients */}
-              {cocktail.ingredients.length > 0 && (
-                <div className="h-full">
-                  <IngredientsCard ingredients={cocktail.ingredients} locale={locale} />
-                </div>
-              )}
-
-              {/* About */}
-              {description && (
-                <div className="bg-evergreen/60 rounded-2xl shadow-lg ring-1 ring-white/10 backdrop-blur-md p-6 flex flex-col">
-                  <h2 className="text-lg font-bold text-porcelain mb-3">{labels.about}</h2>
-                  <p className="text-porcelain/90 leading-relaxed flex-1">{description}</p>
-                </div>
-              )}
-
-              {/* Instructions */}
-              {instructions && (
-                <div className="bg-evergreen/60 rounded-2xl shadow-lg ring-1 ring-white/10 backdrop-blur-md p-6 flex flex-col">
-                  <h2 className="text-lg font-bold text-porcelain mb-4">{labels.instructions}</h2>
-                  {instructionSteps.length > 1 ? (
-                    <ol className="space-y-3 list-none flex-1">
-                      {instructionSteps.map((step, idx) => (
-                        <li key={idx} className="flex gap-3 text-porcelain/90 leading-relaxed">
-                          <span className="flex-shrink-0 w-6 h-6 rounded-full bg-porcelain/20 text-porcelain text-xs font-bold flex items-center justify-center mt-0.5">
-                            {idx + 1}
-                          </span>
-                          <span>{step.trim()}</span>
-                        </li>
-                      ))}
-                    </ol>
-                  ) : (
-                    <p className="text-porcelain/90 leading-relaxed flex-1">{instructions}</p>
-                  )}
-                </div>
-              )}
-
-              {/* History */}
-              {history && (
-                <div className="bg-evergreen/60 rounded-2xl shadow-lg ring-1 ring-white/10 backdrop-blur-md p-6 flex flex-col">
-                  <h2 className="text-lg font-bold text-porcelain mb-3">{labels.history}</h2>
-                  <p className="text-porcelain/90 leading-relaxed flex-1">{history}</p>
-                </div>
-              )}
-
-              {/* Fun fact */}
-              {funFact && (
-                <div className="bg-hunter-green/40 backdrop-blur-md border border-white/20 rounded-2xl p-6 flex flex-col shadow-lg">
-                  <h2 className="text-lg font-bold text-porcelain mb-2">{labels.funFact}</h2>
-                  <p className="text-porcelain/90 leading-relaxed flex-1">{funFact}</p>
-                </div>
-              )}
-
-              {/* YouTube */}
-              <div className="h-full">
-                <YouTubeLink drinkName={cocktail.name} locale={locale} />
-              </div>
+          {/* Ingredients */}
+          {cocktail.ingredients.length > 0 && (
+            <div>
+              <IngredientsCard ingredients={cocktail.ingredients} locale={locale} />
             </div>
-          </div>
+          )}
+
+          {/* History */}
+          {history && (
+            <div className="bg-evergreen/60 rounded-xl shadow-lg ring-1 ring-white/10 backdrop-blur-md p-4 md:p-5">
+              <h2 className="text-base font-bold text-porcelain mb-2">{labels.history}</h2>
+              <p className="text-porcelain/90 text-sm leading-relaxed">{history}</p>
+            </div>
+          )}
+
+          {/* Fun Fact */}
+          {funFact && (
+            <div className="bg-hunter-green/40 backdrop-blur-md border border-white/20 rounded-xl p-4 md:p-5 shadow-lg">
+              <h2 className="text-base font-bold text-porcelain mb-2">{labels.funFact}</h2>
+              <p className="text-porcelain/90 text-sm leading-relaxed">{funFact}</p>
+            </div>
+          )}
+
+          {/* YouTube */}
+          <YouTubeLink drinkName={cocktail.name} locale={locale} />
         </div>
 
         {/* Avaliações e Favoritos */}
-        <div className="mt-8">
+        <div>
           <InteractiveSection cocktailId={cocktail.id} locale={locale} />
         </div>
       </div>
