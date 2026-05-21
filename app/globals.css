@@ -48,3 +48,91 @@ h1, h2, h3, h4, h5, h6 {
     page-break-inside: avoid;
   }
 }
+
+@keyframes morph {
+  0% {
+    transform: rotate(0deg) scale(1);
+    border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+  }
+  50% {
+    transform: rotate(180deg) scale(1.1);
+    border-radius: 40% 60% 70% 30% / 40% 70% 30% 60%;
+  }
+  100% {
+    transform: rotate(360deg) scale(1);
+    border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+  }
+}
+
+.liquid-shape {
+  position: absolute;
+  filter: blur(90px);
+  animation: morph 15s linear infinite;
+  opacity: 0.8;
+}
+
+.shape-1 {
+  top: -10%; 
+  left: -10%; 
+  width: 50vw; 
+  height: 50vw;
+  background: var(--color-hunter-green);
+  animation-delay: 0s;
+  animation-duration: 20s;
+}
+
+.shape-2 {
+  bottom: -20%; 
+  right: -10%; 
+  width: 60vw; 
+  height: 60vw;
+  background: #1e3f28; /* A shade between evergreen and hunter-green */
+  animation-delay: -5s;
+  animation-duration: 25s;
+}
+
+.shape-3 {
+  top: 30%; 
+  left: 20%; 
+  width: 45vw; 
+  height: 45vw;
+  background: #0f1f16; /* Darker evergreen */
+  animation-delay: -10s;
+  animation-duration: 22s;
+}
+
+@media print {
+  /* Hide normal page elements when printing from the recipe sheet modal */
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  
+  body * {
+    visibility: hidden;
+  }
+  
+  .print-recipe-sheet,
+  .print-recipe-sheet * {
+    visibility: visible !important;
+  }
+  
+  .print-recipe-sheet {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+    color: black !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+  
+  /* Remove page margins and header/footer added by browsers if possible */
+  @page {
+    margin: 15mm 15mm 15mm 15mm;
+  }
+}
+

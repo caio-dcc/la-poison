@@ -5,18 +5,44 @@ import { SmokeBackground } from '@/components/ui/SmokeBackground'
 import { Footer } from '@/components/Footer'
 import { AuthNav } from '@/components/AuthNav'
 
+import { NavigationLinks } from '@/components/NavigationLinks'
+
 async function Header({ locale }: { locale: string }) {
   const navigationLabels = {
-    pt: { drinks: 'Drinks', pricing: 'Preços' },
-    en: { drinks: 'Drinks', pricing: 'Pricing' },
-    es: { drinks: 'Bebidas', pricing: 'Precios' },
+    pt: {
+      drinks: 'Drinks',
+      ingredientes: 'Ingredientes',
+      pricing: 'Preços',
+      chatbot: 'Chatbot',
+      about: 'Sobre',
+      contact: 'Contato',
+      barman: 'Barman',
+    },
+    en: {
+      drinks: 'Drinks',
+      ingredientes: 'Ingredients',
+      pricing: 'Pricing',
+      chatbot: 'Chatbot',
+      about: 'About',
+      contact: 'Contact',
+      barman: 'Bartender',
+    },
+    es: {
+      drinks: 'Bebidas',
+      ingredientes: 'Ingredientes',
+      pricing: 'Precios',
+      chatbot: 'Chatbot',
+      about: 'Sobre',
+      contact: 'Contacto',
+      barman: 'Barman',
+    },
   }
 
   const labels = navigationLabels[locale as keyof typeof navigationLabels] || navigationLabels.pt
 
   return (
-    <header className="border-b border-evergreen/20 bg-evergreen sticky top-0 z-50">
-      <nav className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+    <header className="border-b border-evergreen/20 bg-evergreen sticky top-0 z-50 h-16 flex items-center">
+      <nav className="max-w-7xl mx-auto px-4 w-full flex items-center justify-between">
         <div className="flex items-center gap-8">
           <Link
             href={`/${locale}`}
@@ -25,18 +51,7 @@ async function Header({ locale }: { locale: string }) {
           >
             LaPoison
           </Link>
-          <Link
-            href={`/${locale}/drinks`}
-            className="text-sm text-porcelain/80 hover:text-porcelain transition-colors"
-          >
-            {labels.drinks}
-          </Link>
-          <Link
-            href={`/${locale}/pricing`}
-            className="text-sm text-porcelain/80 hover:text-porcelain transition-colors"
-          >
-            {labels.pricing}
-          </Link>
+          <NavigationLinks locale={locale} labels={labels} />
           <AuthNav locale={locale} />
         </div>
         <LanguageSelector currentLocale={locale} />

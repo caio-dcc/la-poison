@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { Search, SlidersHorizontal, X } from 'lucide-react'
 import { useLanguage } from '@/hooks/useLanguage'
+import { getIngredientName } from '@/lib/i18n/translate'
 
 interface Cocktail {
   id: string
@@ -14,12 +15,23 @@ interface Cocktail {
   abv_estimate?: number
   difficulty?: number
   prep_time_minutes?: number
+  alcoholic?: boolean
+  cocktail_ingredients?: Array<{
+    ingredient: {
+      name: string
+      slug: string
+      name_i18n?: Record<string, string> | null
+    }
+  }>
 }
 
 interface FilterOptions {
   categories: string[]
-  ingredients: string[]
-  difficulties: number[]
+  ingredients: Array<{
+    name: string
+    slug: string
+    name_i18n?: Record<string, string> | null
+  }>
   abvRanges: { min: number; max: number }[]
   prepTimes: { min: number; max: number }[]
 }
@@ -27,8 +39,33 @@ interface FilterOptions {
 interface Filters {
   search: string
   category: string | null
-  difficulty: number | null
+  ingredient: string | null
+  alcoholic: 'all' | 'alcoholic' | 'non-alcoholic'
   sortBy: 'name' | 'difficulty' | 'abv'
+}
+
+const localLabels = {
+  pt: {
+    alcoholic: 'Tipo de Coquetel',
+    allTypes: 'Todos (Com e Sem Álcool)',
+    alcoholicOnly: 'Alcoólicos',
+    nonAlcoholicOnly: 'Não Alcoólicos',
+    ingredientSelect: 'Todos os Ingredientes',
+  },
+  en: {
+    alcoholic: 'Cocktail Type',
+    allTypes: 'All (With & Without Alcohol)',
+    alcoholicOnly: 'Alcoholic',
+    nonAlcoholicOnly: 'Non-Alcoholic',
+    ingredientSelect: 'All Ingredients',
+  },
+  es: {
+    alcoholic: 'Tipo de Cóctel',
+    allTypes: 'Todos (Con y Sin Alcohol)',
+    alcoholicOnly: 'Alcohólicos',
+    nonAlcoholicOnly: 'Sin Alcohol',
+    ingredientSelect: 'Todos los Ingredientes',
+  },
 }
 
 export function DrinksSearch({
@@ -41,24 +78,41 @@ export function DrinksSearch({
   locale: string
 }) {
   const { dict } = useLanguage()
+  const ll = localLabels[locale as keyof typeof localLabels] ?? localLabels.pt
 
   const [filters, setFilters] = useState<Filters>({
     search: '',
     category: null,
-    difficulty: null,
+    ingredient: null,
+    alcoholic: 'all',
     sortBy: 'name',
   })
   const [showFilters, setShowFilters] = useState(false)
 
   const filtered = useMemo(() => {
     const result = cocktails.filter(drink => {
+      // 1. Search text
       if (filters.search) {
         const q = filters.search.toLowerCase()
         if (!drink.name.toLowerCase().includes(q) && !drink.category?.toLowerCase().includes(q))
           return false
       }
+
+      // 2. Category filter
       if (filters.category && drink.category !== filters.category) return false
-      if (filters.difficulty !== null && drink.difficulty !== filters.difficulty) return false
+
+      // 3. Ingredient filter
+      if (filters.ingredient) {
+        const hasIngredient = drink.cocktail_ingredients?.some(
+          ci => ci.ingredient.slug === filters.ingredient
+        )
+        if (!hasIngredient) return false
+      }
+
+      // 4. Alcoholic / Non-Alcoholic filter
+      if (filters.alcoholic === 'alcoholic' && drink.alcoholic !== true) return false
+      if (filters.alcoholic === 'non-alcoholic' && drink.alcoholic === true) return false
+
       return true
     })
 
@@ -73,10 +127,20 @@ export function DrinksSearch({
   }, [cocktails, filters])
 
   const hasActiveFilters =
-    filters.search || filters.category || filters.difficulty !== null || filters.sortBy !== 'name'
+    filters.search ||
+    filters.category ||
+    filters.ingredient ||
+    filters.alcoholic !== 'all' ||
+    filters.sortBy !== 'name'
 
   const handleReset = () =>
-    setFilters({ search: '', category: null, difficulty: null, sortBy: 'name' })
+    setFilters({
+      search: '',
+      category: null,
+      ingredient: null,
+      alcoholic: 'all',
+      sortBy: 'name',
+    })
 
   return (
     <div>
@@ -156,44 +220,58 @@ export function DrinksSearch({
             </select>
           </div>
 
-          {/* Difficulty */}
-          {filterOptions.difficulties.length > 0 && (
-            <div>
-              <label className="block text-xs font-semibold text-evergreen mb-1.5 uppercase tracking-wide">
-                {dict.difficulty}
-              </label>
-              <select
-                value={filters.difficulty ?? ''}
-                onChange={e =>
-                  setFilters(f => ({
-                    ...f,
-                    difficulty: e.target.value ? parseInt(e.target.value) : null,
-                  }))
-                }
-                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white text-shadow-grey focus:outline-none focus:ring-2 focus:ring-evergreen/30"
-              >
-                <option value="">{dict.allLevels}</option>
-                {filterOptions.difficulties.map(d => (
-                  <option key={d} value={d}>
-                    {'★'.repeat(d)}
+          {/* Ingredient dropdown */}
+          <div>
+            <label className="block text-xs font-semibold text-evergreen mb-1.5 uppercase tracking-wide">
+              {dict.ingredient}
+            </label>
+            <select
+              value={filters.ingredient || ''}
+              onChange={e => setFilters(f => ({ ...f, ingredient: e.target.value || null }))}
+              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white text-shadow-grey focus:outline-none focus:ring-2 focus:ring-evergreen/30"
+            >
+              <option value="">{ll.ingredientSelect}</option>
+              {filterOptions.ingredients.map(ing => {
+                const name = getIngredientName(ing, locale)
+                return (
+                  <option key={ing.slug} value={ing.slug}>
+                    {name}
                   </option>
-                ))}
-              </select>
-            </div>
-          )}
-
-          {/* Reset */}
-          <div className="flex items-end">
-            {hasActiveFilters && (
-              <button
-                onClick={handleReset}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm text-shadow-grey border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                <X className="w-3.5 h-3.5" />
-                {dict.resetFilters}
-              </button>
-            )}
+                )
+              })}
+            </select>
           </div>
+
+          {/* Alcoholic dropdown */}
+          <div>
+            <label className="block text-xs font-semibold text-evergreen mb-1.5 uppercase tracking-wide">
+              {ll.alcoholic}
+            </label>
+            <select
+              value={filters.alcoholic}
+              onChange={e =>
+                setFilters(f => ({ ...f, alcoholic: e.target.value as Filters['alcoholic'] }))
+              }
+              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white text-shadow-grey focus:outline-none focus:ring-2 focus:ring-evergreen/30"
+            >
+              <option value="all">{ll.allTypes}</option>
+              <option value="alcoholic">{ll.alcoholicOnly}</option>
+              <option value="non-alcoholic">{ll.nonAlcoholicOnly}</option>
+            </select>
+          </div>
+        </div>
+      )}
+
+      {/* Reset button (if active filters and filters panel is closed) */}
+      {!showFilters && hasActiveFilters && (
+        <div className="flex justify-end mb-4">
+          <button
+            onClick={handleReset}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-porcelain/80 hover:text-porcelain bg-white/10 hover:bg-white/15 rounded-lg transition-colors border border-white/5"
+          >
+            <X className="w-3 h-3" />
+            {dict.resetFilters}
+          </button>
         </div>
       )}
 

@@ -18,6 +18,8 @@ const labels = {
     myBars: 'Meus Bares',
     noSubscription: 'Nenhuma',
     resetOn: 'Reseta em',
+    favorites: 'Meus Favoritos',
+    favoritesDesc: 'Veja e gerencie seus drinks salvos',
   },
   en: {
     title: 'My Account — LaPoison',
@@ -33,6 +35,8 @@ const labels = {
     myBars: 'My Bars',
     noSubscription: 'None',
     resetOn: 'Resets on',
+    favorites: 'My Favorites',
+    favoritesDesc: 'View and manage your saved drinks',
   },
   es: {
     title: 'Mi Cuenta — LaPoison',
@@ -48,6 +52,8 @@ const labels = {
     myBars: 'Mis Bares',
     noSubscription: 'Ninguno',
     resetOn: 'Se restablece en',
+    favorites: 'Mis Favoritos',
+    favoritesDesc: 'Ver y administrar tus bebidas guardadas',
   },
 }
 
@@ -134,7 +140,7 @@ export default async function AccountPage({ params }: { params: Promise<{ locale
         </div>
 
         {/* Quick Links */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <Link
             href={`/${locale}/meus-bares`}
             className="block bg-white rounded-2xl shadow-sm p-6 hover:shadow-md transition-shadow"
@@ -148,6 +154,13 @@ export default async function AccountPage({ params }: { params: Promise<{ locale
           >
             <p className="text-lg font-bold text-evergreen">Chatbot</p>
             <p className="text-sm text-shadow-grey/60 mt-1">Get drink suggestions</p>
+          </Link>
+          <Link
+            href={`/${locale}/favoritos`}
+            className="block bg-white rounded-2xl shadow-sm p-6 hover:shadow-md transition-shadow"
+          >
+            <p className="text-lg font-bold text-evergreen">{label.favorites}</p>
+            <p className="text-sm text-shadow-grey/60 mt-1">{label.favoritesDesc}</p>
           </Link>
         </div>
 

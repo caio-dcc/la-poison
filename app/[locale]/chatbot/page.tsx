@@ -61,8 +61,15 @@ export async function generateMetadata({
   )
 }
 
-export default async function ChatbotPage({ params }: { params: Promise<{ locale: string }> }) {
+export default async function ChatbotPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ locale: string }>
+  searchParams: Promise<{ question?: string }>
+}) {
   const { locale } = await params
+  const { question } = await searchParams
   const labels = pageLabels[locale as keyof typeof pageLabels] || pageLabels.pt
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
   const pathname = `/${locale}/chatbot`
@@ -92,7 +99,7 @@ export default async function ChatbotPage({ params }: { params: Promise<{ locale
       </div>
 
       <div className="max-w-3xl mx-auto px-4 py-8">
-        <ChatbotInterface locale={locale} />
+        <ChatbotInterface locale={locale} initialQuestion={question} />
       </div>
 
       <script

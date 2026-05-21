@@ -294,9 +294,9 @@ const faqs = {
 export async function generateMetadata({
   params,
 }: {
-  params: { locale: string }
+  params: Promise<{ locale: string }>
 }): Promise<Metadata> {
-  const locale = params.locale as string
+  const { locale } = await params
   const labels = pageLabels[locale as keyof typeof pageLabels] || pageLabels.pt
 
   return generateSEOMetadata(
@@ -309,8 +309,8 @@ export async function generateMetadata({
   )
 }
 
-export default function PricingPage({ params }: { params: { locale: string } }) {
-  const locale = params.locale as string
+export default async function PricingPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params
   const labels = pageLabels[locale as keyof typeof pageLabels] || pageLabels.pt
   const planList = plans[locale as keyof typeof plans] || plans.pt
   const faqList = faqs[locale as keyof typeof faqs] || faqs.pt

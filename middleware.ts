@@ -5,7 +5,7 @@ const SUPPORTED_LOCALES = ['pt', 'en', 'es']
 const DEFAULT_LOCALE = 'pt'
 
 // Routes that require authentication (relative to locale, e.g., /[locale]/chatbot)
-const PROTECTED_PREFIXES = ['/chatbot', '/meus-bares', '/inventario', '/conta']
+const PROTECTED_PREFIXES = ['/meus-bares', '/inventario', '/conta']
 
 function getLocaleFromPathname(pathname: string): string {
   const parts = pathname.split('/')

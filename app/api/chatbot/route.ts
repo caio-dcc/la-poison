@@ -1,5 +1,6 @@
 import { createHmac } from 'crypto'
 import { Anthropic } from '@anthropic-ai/sdk'
+import { GoogleGenerativeAI } from '@google/generative-ai'
 import { createClient as createServerClient } from '@/utils/supabase/server'
 import { pipeline } from '@xenova/transformers'
 
@@ -63,8 +64,7 @@ async function isRagAvailable(): Promise<boolean> {
  * 4. Return top-5 chunks as context for Claude
  */
 async function fetchRelevantChunksViaSemanticSearch(
-  message: string,
-  _language: string = 'en'
+  message: string
 ): Promise<SemanticChunkResult[]> {
   try {
     // Skip the (expensive) embedding step entirely when the RAG table isn't deployed
@@ -233,9 +233,28 @@ async function checkRateLimit(req: Request): Promise<RateLimitResult> {
   return { allowed: true, remaining: limit - currentCount - 1, limit, resetAt }
 }
 
+type ModelChoice = 'claude' | 'gemini'
+
+function buildSystemPrompt(locale: string, ragContext: string): string {
+  const langInstructions: Record<string, string> = {
+    pt: 'Responda SEMPRE em Portugu\u00eas Brasileiro, independentemente do idioma da pergunta — a menos que o usu\u00e1rio escreva em outro idioma, nesse caso adapte-se ao idioma dele.',
+    en: 'Always respond in English by default — but if the user writes in another language, adapt and reply in their language.',
+    es: 'Responde SIEMPRE en Espa\u00f1ol por defecto — pero si el usuario escribe en otro idioma, ad\u00e1ptate y responde en su idioma.',
+  }
+
+  const langNote = langInstructions[locale] ?? langInstructions.pt
+
+  return `You are LaPoison, an expert cocktail assistant with deep knowledge of mixology, spirits, and bar techniques. You help users find recipes, suggest drinks based on ingredients, explain techniques, and share bartending tips. Be friendly, concise, and knowledgeable. Keep responses to 1-2 paragraphs unless asked for more detailed information.
+
+${langNote}
+
+When cocktail context is provided below, use it to give specific, accurate answers. Reference drink names when relevant.${ragContext}`
+}
+
 export async function POST(req: Request) {
   try {
-    const { message } = (await req.json()) as { message: string }
+    const body = (await req.json()) as { message: string; model?: ModelChoice; locale?: string }
+    const { message, model = 'claude', locale = 'pt' } = body
 
     if (!message?.trim()) {
       return Response.json({ error: 'Message is required' }, { status: 400 })
@@ -256,74 +275,107 @@ export async function POST(req: Request) {
       )
     }
 
-    // Initialize Anthropic client
-    const anthropic = new Anthropic({
-      apiKey: process.env.ANTHROPIC_API_KEY,
-    })
-
     // RAG: Semantic search for relevant cocktail chunks
-    // This retrieves context based on MEANING, not just keyword matching
     const relevantChunks = await fetchRelevantChunksViaSemanticSearch(message)
 
-    // Build context block: format chunks by drink for readability
+    // Build context block
     let ragContext = ''
     if (relevantChunks.length > 0) {
       const chunksByDrink = new Map<string, SemanticChunkResult[]>()
-
       for (const chunk of relevantChunks) {
-        if (!chunksByDrink.has(chunk.drink_id)) {
-          chunksByDrink.set(chunk.drink_id, [])
-        }
+        if (!chunksByDrink.has(chunk.drink_id)) chunksByDrink.set(chunk.drink_id, [])
         chunksByDrink.get(chunk.drink_id)!.push(chunk)
       }
-
       const contextLines = Array.from(chunksByDrink.entries())
-        .map(([_drinkId, chunks]) => {
-          const lines = [`[Cocktail]`]
-
-          // Group chunk content by type for clarity
+        .map(([, chunks]) => {
+          const lines = ['[Cocktail]']
           const byType = new Map<string, string[]>()
           for (const chunk of chunks) {
-            if (!byType.has(chunk.chunk_type)) {
-              byType.set(chunk.chunk_type, [])
-            }
+            if (!byType.has(chunk.chunk_type)) byType.set(chunk.chunk_type, [])
             byType.get(chunk.chunk_type)!.push(chunk.content)
           }
-
           for (const [type, contents] of byType.entries()) {
             lines.push(`  [${type.toUpperCase()}] ${contents.join('; ')}`)
           }
-
           return lines.join('\n')
         })
         .join('\n\n')
-
       ragContext = `\n\n[CONTEXT FROM DATABASE]\nDrink Information (retrieved via semantic search):\n${contextLines}\n[END CONTEXT]`
     }
 
-    // Create streaming message with semantic context
-    const stream = await anthropic.messages.stream({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 1024,
-      system: `You are LaPoison, an expert cocktail assistant powered by semantic search. You help users find recipes, suggest drinks based on ingredients, explain techniques, and share bartending tips. Be friendly, concise, and knowledgeable. Keep responses to 1-2 paragraphs unless asked for more.
+    const systemPrompt = buildSystemPrompt(locale, ragContext)
+    const encoder = new TextEncoder()
+    const rateLimitHeaders = {
+      'Content-Type': 'text/plain; charset=utf-8',
+      'Cache-Control': 'no-cache',
+      Connection: 'keep-alive',
+      'X-RateLimit-Limit': String(rateLimit.limit),
+      'X-RateLimit-Remaining': String(rateLimit.remaining),
+      'X-RateLimit-Reset': String(rateLimit.resetAt),
+    }
 
-When context is provided below, use it to give specific, accurate answers. Reference drink names when relevant.${ragContext}`,
-      messages: [{ role: 'user', content: message }],
+    // ── Claude Haiku ──────────────────────────────────────────────────────────
+    if (model === 'claude') {
+      const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+      const stream = anthropic.messages.stream({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 1024,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: message }],
+      })
+
+      const readableStream = new ReadableStream({
+        async start(controller) {
+          try {
+            for await (const event of stream) {
+              if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {
+                controller.enqueue(encoder.encode(event.delta.text))
+              }
+            }
+          } catch (err) {
+            controller.error(err)
+          } finally {
+            controller.close()
+          }
+        },
+      })
+
+      return new Response(readableStream, { headers: rateLimitHeaders })
+    }
+
+    // ── Gemini Pro ────────────────────────────────────────────────────────────
+    const geminiKey = process.env.GEMINI_API_KEY
+    if (!geminiKey) {
+      return Response.json(
+        { error: 'Gemini API key not configured. Add GEMINI_API_KEY to your .env file.' },
+        { status: 503 }
+      )
+    }
+
+    const genAI = new GoogleGenerativeAI(geminiKey)
+    const geminiModel = genAI.getGenerativeModel({
+      model: 'gemini-2.0-flash',
+      systemInstruction: systemPrompt,
     })
 
-    // Convert stream to ReadableStream
-    const readableStream = stream.toReadableStream()
+    const geminiStream = await geminiModel.generateContentStream(message)
 
-    return new Response(readableStream, {
-      headers: {
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-        Connection: 'keep-alive',
-        'X-RateLimit-Limit': String(rateLimit.limit),
-        'X-RateLimit-Remaining': String(rateLimit.remaining),
-        'X-RateLimit-Reset': String(rateLimit.resetAt),
+    const readableStream = new ReadableStream({
+      async start(controller) {
+        try {
+          for await (const chunk of geminiStream.stream) {
+            const text = chunk.text()
+            if (text) controller.enqueue(encoder.encode(text))
+          }
+        } catch (err) {
+          controller.error(err)
+        } finally {
+          controller.close()
+        }
       },
     })
+
+    return new Response(readableStream, { headers: rateLimitHeaders })
   } catch (error) {
     console.error('Chatbot error:', error)
     return Response.json({ error: 'Internal server error' }, { status: 500 })

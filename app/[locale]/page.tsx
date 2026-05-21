@@ -7,9 +7,9 @@ const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://lapoison.com'
 export async function generateMetadata({
   params,
 }: {
-  params: { locale: string }
+  params: Promise<{ locale: string }>
 }): Promise<Metadata> {
-  const locale = params.locale as string
+  const { locale } = await params
 
   const titles = {
     pt: 'LaPoison — Receitas de Coquetéis, Drinks e Mixologia',

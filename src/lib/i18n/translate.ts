@@ -64,6 +64,64 @@ export function getFunFact(cocktail: LocalizableCocktail, locale: string = 'en')
   return pickLocalized(cocktail, 'fun_fact', locale)
 }
 
+const categoryTranslations: Record<string, Record<string, string>> = {
+  'ordinary drink': {
+    pt: 'Drink Comum',
+    en: 'Ordinary Drink',
+    es: 'Bebida Común',
+  },
+  cocktail: {
+    pt: 'Coquetel',
+    en: 'Cocktail',
+    es: 'Cóctel',
+  },
+  shake: {
+    pt: 'Shake',
+    en: 'Shake',
+    es: 'Batido',
+  },
+  'other / unknown': {
+    pt: 'Outro / Desconhecido',
+    en: 'Other / Unknown',
+    es: 'Otro / Desconocido',
+  },
+  cocoa: {
+    pt: 'Cacau',
+    en: 'Cocoa',
+    es: 'Cacao',
+  },
+  shot: {
+    pt: 'Shot',
+    en: 'Shot',
+    es: 'Chupito',
+  },
+  'coffee / tea': {
+    pt: 'Café / Chá',
+    en: 'Coffee / Tea',
+    es: 'Café / Té',
+  },
+  'homemade liqueur': {
+    pt: 'Licor Caseiro',
+    en: 'Homemade Liqueur',
+    es: 'Licor Casero',
+  },
+  'punch / party drink': {
+    pt: 'Punch / Drink de Festa',
+    en: 'Punch / Party Drink',
+    es: 'Ponche / Bebida de Fiesta',
+  },
+  beer: {
+    pt: 'Cerveja',
+    en: 'Beer',
+    es: 'Cerveza',
+  },
+  'soft drink / soda': {
+    pt: 'Refrigerante / Soda',
+    en: 'Soft Drink / Soda',
+    es: 'Refresco / Soda',
+  },
+}
+
 /**
  * Get category name in the specified locale
  */
@@ -74,10 +132,15 @@ export function getCategoryName(
   },
   locale: string
 ): string {
-  if (category.name_i18n) {
-    return getI18nValue(category.name_i18n, locale, category.name || '')
+  const name = category.name || ''
+  const lowerName = name.toLowerCase().trim()
+  if (categoryTranslations[lowerName]) {
+    return categoryTranslations[lowerName][locale] || categoryTranslations[lowerName].en || name
   }
-  return category.name || ''
+  if (category.name_i18n) {
+    return getI18nValue(category.name_i18n, locale, name)
+  }
+  return name
 }
 
 /**

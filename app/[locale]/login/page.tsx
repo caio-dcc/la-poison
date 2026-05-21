@@ -4,11 +4,6 @@ import { generateSEOMetadata } from '@/lib/seo/metadata'
 import LoginForm from '@/components/auth/LoginForm'
 
 const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://lapoison.com'
-const localeToLang = {
-  pt: 'pt-BR',
-  en: 'en-US',
-  es: 'es-ES',
-}
 
 const pageLabels = {
   pt: { title: 'Login', description: 'Acesse sua conta' },
@@ -19,9 +14,9 @@ const pageLabels = {
 export async function generateMetadata({
   params,
 }: {
-  params: { locale: string }
+  params: Promise<{ locale: string }>
 }): Promise<Metadata> {
-  const locale = params.locale as string
+  const { locale } = await params
   const labels = pageLabels[locale as keyof typeof pageLabels] || pageLabels.pt
 
   return generateSEOMetadata(

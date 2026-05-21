@@ -28,7 +28,7 @@ export function YouTubeLink({ drinkName, locale = 'pt' }: YouTubeLinkProps) {
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="flex items-center gap-3 bg-white rounded-2xl shadow-sm ring-1 ring-black/5 p-5 hover:bg-red-50 hover:ring-red-200 transition-colors group"
+      className="flex items-center gap-3 bg-evergreen/60 backdrop-blur-md rounded-2xl shadow-lg ring-1 ring-white/10 p-5 hover:bg-white/10 hover:ring-white/30 transition-colors group"
     >
       {/* YouTube icon */}
       <span className="shrink-0 w-10 h-10 rounded-full bg-red-600 flex items-center justify-center group-hover:bg-red-700 transition-colors">
@@ -37,16 +37,16 @@ export function YouTubeLink({ drinkName, locale = 'pt' }: YouTubeLinkProps) {
         </svg>
       </span>
       <div className="min-w-0">
-        <p className="font-semibold text-shadow-grey group-hover:text-red-700 transition-colors text-sm leading-tight">
+        <p className="font-semibold text-porcelain group-hover:text-white transition-colors text-sm leading-tight">
           {l.label}
         </p>
-        <p className="text-xs text-shadow-grey/60 truncate mt-0.5">{l.query(drinkName)}</p>
+        <p className="text-xs text-porcelain/60 truncate mt-0.5">{l.query(drinkName)}</p>
       </div>
       {/* External link arrow */}
       <svg
         viewBox="0 0 20 20"
         fill="currentColor"
-        className="w-4 h-4 text-shadow-grey/30 shrink-0 ml-auto group-hover:text-red-400 transition-colors"
+        className="w-4 h-4 text-porcelain/40 shrink-0 ml-auto group-hover:text-white transition-colors"
         aria-hidden="true"
       >
         <path

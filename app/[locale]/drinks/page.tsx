@@ -17,12 +17,23 @@ interface Cocktail {
   abv_estimate?: number
   difficulty?: number
   prep_time_minutes?: number
+  alcoholic?: boolean
+  cocktail_ingredients?: Array<{
+    ingredient: {
+      name: string
+      slug: string
+      name_i18n?: Record<string, string> | null
+    }
+  }>
 }
 
 interface FilterOptions {
   categories: string[]
-  ingredients: string[]
-  difficulties: number[]
+  ingredients: Array<{
+    name: string
+    slug: string
+    name_i18n?: Record<string, string> | null
+  }>
   abvRanges: { min: number; max: number }[]
   prepTimes: { min: number; max: number }[]
 }
@@ -67,7 +78,7 @@ async function getAllCocktails(): Promise<Cocktail[]> {
     }
 
     const response = await fetch(
-      `${supabaseUrl}/rest/v1/cocktails?select=id,name,slug,thumb_url,category,abv_estimate,difficulty,prep_time_minutes&order=name.asc&limit=500`,
+      `${supabaseUrl}/rest/v1/cocktails?select=id,name,slug,thumb_url,category,abv_estimate,difficulty,prep_time_minutes,alcoholic,cocktail_ingredients(ingredient:ingredients(name,slug,name_i18n))&order=name.asc&limit=500`,
       {
         headers: {
           apikey: supabaseKey,
@@ -99,7 +110,6 @@ async function getFilterOptions(): Promise<FilterOptions> {
       return {
         categories: [],
         ingredients: [],
-        difficulties: [],
         abvRanges: [],
         prepTimes: [],
       }
@@ -108,12 +118,27 @@ async function getFilterOptions(): Promise<FilterOptions> {
     const cocktails = await getAllCocktails()
 
     const categoriesSet = new Set(cocktails.map(c => c.category).filter(Boolean))
-    const difficultiesSet = new Set(cocktails.map(c => c.difficulty).filter(d => d !== undefined))
+
+    const ingredientsMap = new Map<
+      string,
+      { name: string; slug: string; name_i18n?: Record<string, string> | null }
+    >()
+    for (const c of cocktails) {
+      if (c.cocktail_ingredients) {
+        for (const ci of c.cocktail_ingredients) {
+          if (ci.ingredient) {
+            ingredientsMap.set(ci.ingredient.slug, ci.ingredient)
+          }
+        }
+      }
+    }
+    const ingredients = Array.from(ingredientsMap.values()).sort((a, b) =>
+      a.name.localeCompare(b.name)
+    )
 
     return {
       categories: Array.from(categoriesSet).sort(),
-      ingredients: [],
-      difficulties: Array.from(difficultiesSet).sort((a, b) => (a || 0) - (b || 0)),
+      ingredients,
       abvRanges: [
         { min: 0, max: 15 },
         { min: 15, max: 30 },
@@ -130,7 +155,6 @@ async function getFilterOptions(): Promise<FilterOptions> {
     return {
       categories: [],
       ingredients: [],
-      difficulties: [],
       abvRanges: [],
       prepTimes: [],
     }
