@@ -433,10 +433,10 @@ export default async function DrinkPage({
       </div>
 
       {/* Content cards — overlap slightly over the hero */}
-      <div className="max-w-5xl mx-auto px-4 -mt-4 md:-mt-8 pb-12">
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+      <div className="max-w-5xl mx-auto px-3 sm:px-4 -mt-4 md:-mt-8 pb-12">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 sm:gap-6">
           {/* Left column: image + meta */}
-          <div className="md:col-span-2 space-y-4">
+          <div className="md:col-span-2 space-y-3 sm:space-y-4">
             <div className="rounded-2xl overflow-hidden shadow-lg bg-white ring-1 ring-black/5">
               <img
                 src={cocktail.thumb_url}
@@ -494,7 +494,7 @@ export default async function DrinkPage({
           </div>
 
           {/* Right column: content */}
-          <div className="md:col-span-3 space-y-5">
+          <div className="md:col-span-3 space-y-4 sm:space-y-5">
             {description && (
               <div className="bg-white rounded-2xl shadow-sm ring-1 ring-black/5 p-6">
                 <h2 className="text-lg font-bold text-evergreen mb-3">{labels.about}</h2>

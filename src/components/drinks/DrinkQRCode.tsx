@@ -53,23 +53,29 @@ export function DrinkQRCode({
   return (
     <>
       {/* QR Code card */}
-      <div className="bg-white rounded-2xl shadow-sm ring-1 ring-black/5 p-5 flex flex-col items-center gap-3">
-        <p className="text-sm font-semibold text-evergreen">{l.title}</p>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={qrSrc}
-          alt={`QR Code — ${drinkName}`}
-          width={160}
-          height={160}
-          className="rounded-lg"
-          loading="lazy"
-        />
+      <div className="bg-white rounded-2xl shadow-sm ring-1 ring-black/5 p-6 flex flex-col items-center gap-4 w-full">
+        <p className="text-sm font-semibold text-evergreen text-center">{l.title}</p>
+        <div className="flex justify-center w-full">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={qrSrc}
+            alt={`QR Code — ${drinkName}`}
+            width={180}
+            height={180}
+            className="rounded-lg bg-white border border-gray-200"
+            loading="eager"
+            onError={e => {
+              console.warn('QR Code failed to load:', qrSrc)
+              e.currentTarget.style.display = 'none'
+            }}
+          />
+        </div>
         <p className="text-xs text-shadow-grey/60 text-center">{l.subtitle}</p>
 
         {/* Trigger button */}
         <button
           onClick={() => setShowModal(true)}
-          className="mt-1 w-full text-sm font-semibold text-porcelain bg-evergreen hover:bg-hunter-green rounded-xl py-2 px-4 transition-colors"
+          className="mt-3 w-full text-sm font-semibold text-porcelain bg-evergreen hover:bg-hunter-green rounded-xl py-2 px-4 transition-colors"
         >
           {l.openPrint}
         </button>
