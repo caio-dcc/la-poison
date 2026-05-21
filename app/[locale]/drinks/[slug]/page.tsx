@@ -10,6 +10,10 @@ import {
 } from '@/lib/seo/jsonld'
 import { truncateDescription, formatTitle } from '@/lib/seo/metadata'
 import { IngredientsCard } from '@/components/drinks/IngredientsCard'
+import { SmokeBackground } from '@/components/ui/SmokeBackground'
+import { DrinkQRCode } from '@/components/drinks/DrinkQRCode'
+import { YouTubeLink } from '@/components/drinks/YouTubeLink'
+import { createClient } from '@/utils/supabase/server'
 import {
   getInstructions,
   getDescription,
@@ -341,6 +345,24 @@ export default async function DrinkPage({
   const cocktail = await getCocktail(slug, locale)
   if (!cocktail) notFound()
 
+  let isPro = false
+  try {
+    const supabase = await createClient()
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
+    if (session?.user?.id) {
+      const { data: sub } = await supabase
+        .from('subscriptions')
+        .select('status')
+        .eq('user_id', session.user.id)
+        .single()
+      isPro = sub?.status === 'active'
+    }
+  } catch {
+    // non-critical
+  }
+
   const labels = pageLabels[locale as keyof typeof pageLabels] || pageLabels.pt
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
   const pathname = `/${locale}/drinks/${slug}`
@@ -385,9 +407,12 @@ export default async function DrinkPage({
 
   return (
     <main className="min-h-screen bg-porcelain">
-      <div className="bg-evergreen text-porcelain py-6 px-4">
-        <div className="max-w-5xl mx-auto">
-          <nav className="text-sm text-porcelain/60 mb-2">
+      {/* Hero section with smoke background */}
+      <div className="relative overflow-hidden bg-evergreen">
+        <SmokeBackground smokeColor="#F1F5F2" />
+        <div className="relative z-10 max-w-5xl mx-auto px-4 pt-8 pb-16">
+          {/* Breadcrumb */}
+          <nav className="text-sm text-porcelain/60 mb-6">
             <Link href={`/${locale}`} className="hover:text-porcelain transition-colors">
               {labels.home}
             </Link>
@@ -396,15 +421,23 @@ export default async function DrinkPage({
               {labels.drinks}
             </Link>
             {' / '}
-            <span>{cocktail.name}</span>
+            <span className="text-porcelain/90">{cocktail.name}</span>
           </nav>
+
+          {/* Drink name + category in hero */}
+          <h1 className="text-4xl md:text-5xl font-bold text-porcelain mb-2 drop-shadow-sm">
+            {cocktail.name}
+          </h1>
+          {categoryName && <p className="text-porcelain/70 text-lg">{categoryName}</p>}
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
+      {/* Content cards — overlap slightly over the hero */}
+      <div className="max-w-5xl mx-auto px-4 -mt-4 md:-mt-8 pb-12">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+          {/* Left column: image + meta */}
           <div className="md:col-span-2 space-y-4">
-            <div className="rounded-2xl overflow-hidden shadow-md bg-white">
+            <div className="rounded-2xl overflow-hidden shadow-lg bg-white ring-1 ring-black/5">
               <img
                 src={cocktail.thumb_url}
                 alt={cocktail.name}
@@ -413,7 +446,7 @@ export default async function DrinkPage({
               />
             </div>
 
-            <div className="bg-white rounded-2xl shadow-sm p-5 space-y-3 text-sm">
+            <div className="bg-white rounded-2xl shadow-sm ring-1 ring-black/5 p-5 space-y-3 text-sm">
               {categoryName && (
                 <div className="flex items-center justify-between">
                   <span className="text-shadow-grey/70">{labels.category}</span>
@@ -450,18 +483,20 @@ export default async function DrinkPage({
                 </div>
               )}
             </div>
+
+            <DrinkQRCode
+              url={canonicalUrl}
+              drinkName={cocktail.name}
+              drinkImage={cocktail.thumb_url}
+              locale={locale}
+              isPro={isPro}
+            />
           </div>
 
-          <div className="md:col-span-3 space-y-6">
-            <div>
-              <h1 className="text-3xl md:text-4xl font-bold text-evergreen mb-1">
-                {cocktail.name}
-              </h1>
-              {categoryName && <p className="text-hunter-green">{categoryName}</p>}
-            </div>
-
+          {/* Right column: content */}
+          <div className="md:col-span-3 space-y-5">
             {description && (
-              <div className="bg-white rounded-2xl shadow-sm p-6">
+              <div className="bg-white rounded-2xl shadow-sm ring-1 ring-black/5 p-6">
                 <h2 className="text-lg font-bold text-evergreen mb-3">{labels.about}</h2>
                 <p className="text-shadow-grey leading-relaxed">{description}</p>
               </div>
@@ -472,7 +507,7 @@ export default async function DrinkPage({
             )}
 
             {instructions && (
-              <div className="bg-white rounded-2xl shadow-sm p-6">
+              <div className="bg-white rounded-2xl shadow-sm ring-1 ring-black/5 p-6">
                 <h2 className="text-lg font-bold text-evergreen mb-4">{labels.instructions}</h2>
                 {instructionSteps.length > 1 ? (
                   <ol className="space-y-3 list-decimal list-inside">
@@ -489,7 +524,7 @@ export default async function DrinkPage({
             )}
 
             {history && (
-              <div className="bg-white rounded-2xl shadow-sm p-6">
+              <div className="bg-white rounded-2xl shadow-sm ring-1 ring-black/5 p-6">
                 <h2 className="text-lg font-bold text-evergreen mb-3">{labels.history}</h2>
                 <p className="text-shadow-grey leading-relaxed">{history}</p>
               </div>
@@ -501,6 +536,8 @@ export default async function DrinkPage({
                 <p className="text-shadow-grey leading-relaxed">{funFact}</p>
               </div>
             )}
+
+            <YouTubeLink drinkName={cocktail.name} locale={locale} />
           </div>
         </div>
       </div>
