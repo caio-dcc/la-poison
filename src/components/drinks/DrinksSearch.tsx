@@ -287,9 +287,9 @@ export function DrinksSearch({
             <Link
               key={cocktail.id}
               href={`/${locale}/drinks/${cocktail.slug}`}
-              className="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5"
+              className="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5 w-[150px]"
             >
-              <div className="aspect-square overflow-hidden bg-gray-100">
+              <div className="aspect-square overflow-hidden bg-gray-100 w-[150px] h-[150px]">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={cocktail.thumb_url}
@@ -304,11 +304,11 @@ export function DrinksSearch({
                   }}
                 />
               </div>
-              <div className="p-2.5">
-                <h2 className="font-semibold text-xs text-shadow-grey group-hover:text-evergreen transition-colors line-clamp-2 leading-snug mb-0.5">
+              <div className="p-2.5 text-center">
+                <h2 className="font-bold text-xs text-black group-hover:text-evergreen transition-colors line-clamp-2 leading-snug mb-0.5">
                   {cocktail.name}
                 </h2>
-                <p className="text-[10px] text-shadow-grey/50 truncate">{cocktail.category}</p>
+                <p className="text-[10px] text-black truncate">{cocktail.category}</p>
               </div>
             </Link>
           ))}
