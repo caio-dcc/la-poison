@@ -1,10 +1,10 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import Link from 'next/link'
 import { Search, SlidersHorizontal, X } from 'lucide-react'
 import { useLanguage } from '@/hooks/useLanguage'
-import { getIngredientName } from '@/lib/i18n/translate'
+import { getIngredientName, getCategoryName } from '@/lib/i18n/translate'
+import { DrinkShowcaseCard } from '@/components/drinks/DrinkShowcaseCard'
 
 interface Cocktail {
   id: string
@@ -47,26 +47,31 @@ interface Filters {
 const localLabels = {
   pt: {
     alcoholic: 'Tipo de Coquetel',
-    allTypes: 'Todos (Com e Sem Álcool)',
+    allTypes: 'Todos',
     alcoholicOnly: 'Alcoólicos',
     nonAlcoholicOnly: 'Não Alcoólicos',
     ingredientSelect: 'Todos os Ingredientes',
   },
   en: {
     alcoholic: 'Cocktail Type',
-    allTypes: 'All (With & Without Alcohol)',
+    allTypes: 'All',
     alcoholicOnly: 'Alcoholic',
     nonAlcoholicOnly: 'Non-Alcoholic',
     ingredientSelect: 'All Ingredients',
   },
   es: {
     alcoholic: 'Tipo de Cóctel',
-    allTypes: 'Todos (Con y Sin Alcohol)',
+    allTypes: 'Todos',
     alcoholicOnly: 'Alcohólicos',
     nonAlcoholicOnly: 'Sin Alcohol',
     ingredientSelect: 'Todos los Ingredientes',
   },
 }
+
+const SELECT_CLS =
+  'w-full px-3.5 py-2.5 text-[15px] font-medium border border-white/10 rounded-lg bg-black/60 text-porcelain focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/25 transition-colors'
+const LABEL_CLS =
+  'block text-[13px] font-mono font-semibold text-porcelain/45 mb-2 uppercase tracking-widest'
 
 export function DrinksSearch({
   cocktails,
@@ -87,78 +92,68 @@ export function DrinksSearch({
     alcoholic: 'all',
     sortBy: 'name',
   })
-  const [showFilters, setShowFilters] = useState(false)
+  const [showFilters, setShowFilters] = useState(true)
 
   const filtered = useMemo(() => {
     const result = cocktails.filter(drink => {
-      // 1. Search text
       if (filters.search) {
         const q = filters.search.toLowerCase()
         if (!drink.name.toLowerCase().includes(q) && !drink.category?.toLowerCase().includes(q))
           return false
       }
-
-      // 2. Category filter
       if (filters.category && drink.category !== filters.category) return false
-
-      // 3. Ingredient filter
       if (filters.ingredient) {
-        const hasIngredient = drink.cocktail_ingredients?.some(
+        const has = drink.cocktail_ingredients?.some(
           ci => ci.ingredient.slug === filters.ingredient
         )
-        if (!hasIngredient) return false
+        if (!has) return false
       }
-
-      // 4. Alcoholic / Non-Alcoholic filter
       if (filters.alcoholic === 'alcoholic' && drink.alcoholic !== true) return false
       if (filters.alcoholic === 'non-alcoholic' && drink.alcoholic === true) return false
-
       return true
     })
-
     result.sort((a, b) => {
       if (filters.sortBy === 'name') return a.name.localeCompare(b.name)
       if (filters.sortBy === 'difficulty') return (a.difficulty ?? 99) - (b.difficulty ?? 99)
       if (filters.sortBy === 'abv') return (b.abv_estimate ?? 0) - (a.abv_estimate ?? 0)
       return 0
     })
-
     return result
   }, [cocktails, filters])
 
-  const hasActiveFilters =
+  const hasActiveFilters = Boolean(
     filters.search ||
     filters.category ||
     filters.ingredient ||
     filters.alcoholic !== 'all' ||
     filters.sortBy !== 'name'
+  )
 
   const handleReset = () =>
-    setFilters({
-      search: '',
-      category: null,
-      ingredient: null,
-      alcoholic: 'all',
-      sortBy: 'name',
-    })
+    setFilters({ search: '', category: null, ingredient: null, alcoholic: 'all', sortBy: 'name' })
+
+  const filterBtnCls =
+    showFilters || hasActiveFilters
+      ? 'bg-white/15 text-porcelain border-white/20 backdrop-blur-sm'
+      : 'bg-black/30 text-porcelain/70 border-white/10 hover:border-white/20 backdrop-blur-sm'
 
   return (
-    <div>
+    <div className="px-[15%]">
       {/* Search bar + filter toggle */}
       <div className="flex gap-3 mb-4">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-shadow-grey/50 w-4 h-4" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-porcelain/40 w-4 h-4" />
           <input
             type="text"
             placeholder={dict.searchPlaceholder}
             value={filters.search}
             onChange={e => setFilters(f => ({ ...f, search: e.target.value }))}
-            className="w-full pl-9 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-evergreen/30 focus:border-evergreen text-shadow-grey"
+            className="w-full pl-9 pr-4 py-2.5 bg-black/40 border border-white/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 text-porcelain placeholder:text-porcelain/30 backdrop-blur-sm transition-colors"
           />
           {filters.search && (
             <button
               onClick={() => setFilters(f => ({ ...f, search: '' }))}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-shadow-grey/40 hover:text-shadow-grey"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-porcelain/40 hover:text-porcelain"
             >
               <X className="w-3.5 h-3.5" />
             </button>
@@ -166,11 +161,7 @@ export function DrinksSearch({
         </div>
         <button
           onClick={() => setShowFilters(v => !v)}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium border transition-colors ${
-            showFilters || hasActiveFilters
-              ? 'bg-evergreen text-porcelain border-evergreen'
-              : 'bg-white text-shadow-grey border-gray-200 hover:border-evergreen/40'
-          }`}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium border transition-colors ${filterBtnCls}`}
         >
           <SlidersHorizontal className="w-4 h-4" />
           <span className="hidden sm:inline">{dict.filters}</span>
@@ -182,135 +173,125 @@ export function DrinksSearch({
 
       {/* Filter panel */}
       {showFilters && (
-        <div className="bg-white border border-gray-200 rounded-2xl p-5 mb-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Sort */}
-          <div>
-            <label className="block text-xs font-semibold text-evergreen mb-1.5 uppercase tracking-wide">
-              {dict.sortBy}
-            </label>
-            <select
-              value={filters.sortBy}
-              onChange={e =>
-                setFilters(f => ({ ...f, sortBy: e.target.value as Filters['sortBy'] }))
-              }
-              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white text-shadow-grey focus:outline-none focus:ring-2 focus:ring-evergreen/30"
-            >
-              <option value="name">{dict.nameAZ}</option>
-              <option value="difficulty">{dict.difficultyLow}</option>
-              <option value="abv">{dict.abvHigh}</option>
-            </select>
+        <div className="mb-5 rounded-2xl overflow-hidden border border-white/10 backdrop-blur-sm">
+          {/* Panel header */}
+          <div className="flex items-center justify-between px-5 py-3.5 bg-white/4 border-b border-white/8">
+            <div className="flex items-center gap-2.5">
+              <SlidersHorizontal className="w-4 h-4 text-porcelain/40" />
+              <span className="text-[11px] font-mono font-semibold text-porcelain/55 uppercase tracking-widest">
+                {dict.filters}
+              </span>
+              {hasActiveFilters && (
+                <span className="px-2 py-0.5 rounded-full bg-white/15 text-[10px] font-mono font-bold text-porcelain/90">
+                  {
+                    [
+                      filters.category,
+                      filters.ingredient,
+                      filters.alcoholic !== 'all',
+                      filters.sortBy !== 'name',
+                    ].filter(Boolean).length
+                  }
+                </span>
+              )}
+            </div>
+            {hasActiveFilters && (
+              <button
+                onClick={handleReset}
+                className="flex items-center gap-1.5 text-[11px] font-mono text-porcelain/45 hover:text-porcelain/75 transition-colors"
+              >
+                <X className="w-3 h-3" />
+                {dict.resetFilters}
+              </button>
+            )}
           </div>
 
-          {/* Category */}
-          <div>
-            <label className="block text-xs font-semibold text-evergreen mb-1.5 uppercase tracking-wide">
-              {dict.category}
-            </label>
-            <select
-              value={filters.category || ''}
-              onChange={e => setFilters(f => ({ ...f, category: e.target.value || null }))}
-              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white text-shadow-grey focus:outline-none focus:ring-2 focus:ring-evergreen/30"
-            >
-              <option value="">{dict.allCategories}</option>
-              {filterOptions.categories.map(cat => (
-                <option key={cat} value={cat}>
-                  {cat}
-                </option>
-              ))}
-            </select>
-          </div>
+          {/* Filter rows */}
+          <div className="bg-[#0e0e0e] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-white/6">
+            {/* Sort */}
+            <div className="px-5 py-4">
+              <label className={LABEL_CLS}>{dict.sortBy}</label>
+              <select
+                value={filters.sortBy}
+                onChange={e =>
+                  setFilters(f => ({ ...f, sortBy: e.target.value as Filters['sortBy'] }))
+                }
+                className={SELECT_CLS}
+              >
+                <option value="name">{dict.nameAZ}</option>
+                <option value="difficulty">{dict.difficultyLow}</option>
+                <option value="abv">{dict.abvHigh}</option>
+              </select>
+            </div>
 
-          {/* Ingredient dropdown */}
-          <div>
-            <label className="block text-xs font-semibold text-evergreen mb-1.5 uppercase tracking-wide">
-              {dict.ingredient}
-            </label>
-            <select
-              value={filters.ingredient || ''}
-              onChange={e => setFilters(f => ({ ...f, ingredient: e.target.value || null }))}
-              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white text-shadow-grey focus:outline-none focus:ring-2 focus:ring-evergreen/30"
-            >
-              <option value="">{ll.ingredientSelect}</option>
-              {filterOptions.ingredients.map(ing => {
-                const name = getIngredientName(ing, locale)
-                return (
-                  <option key={ing.slug} value={ing.slug}>
-                    {name}
+            {/* Category */}
+            <div className="px-5 py-4">
+              <label className={LABEL_CLS}>{dict.category}</label>
+              <select
+                value={filters.category || ''}
+                onChange={e => setFilters(f => ({ ...f, category: e.target.value || null }))}
+                className={SELECT_CLS}
+              >
+                <option value="">{dict.allCategories}</option>
+                {filterOptions.categories.map(cat => (
+                  <option key={cat} value={cat}>
+                    {getCategoryName({ name: cat }, locale)}
                   </option>
-                )
-              })}
-            </select>
-          </div>
+                ))}
+              </select>
+            </div>
 
-          {/* Alcoholic dropdown */}
-          <div>
-            <label className="block text-xs font-semibold text-evergreen mb-1.5 uppercase tracking-wide">
-              {ll.alcoholic}
-            </label>
-            <select
-              value={filters.alcoholic}
-              onChange={e =>
-                setFilters(f => ({ ...f, alcoholic: e.target.value as Filters['alcoholic'] }))
-              }
-              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white text-shadow-grey focus:outline-none focus:ring-2 focus:ring-evergreen/30"
-            >
-              <option value="all">{ll.allTypes}</option>
-              <option value="alcoholic">{ll.alcoholicOnly}</option>
-              <option value="non-alcoholic">{ll.nonAlcoholicOnly}</option>
-            </select>
-          </div>
-        </div>
-      )}
+            {/* Ingredient */}
+            <div className="px-5 py-4">
+              <label className={LABEL_CLS}>{dict.ingredient}</label>
+              <select
+                value={filters.ingredient || ''}
+                onChange={e => setFilters(f => ({ ...f, ingredient: e.target.value || null }))}
+                className={SELECT_CLS}
+              >
+                <option value="">{ll.ingredientSelect}</option>
+                {filterOptions.ingredients.map(ing => (
+                  <option key={ing.slug} value={ing.slug}>
+                    {getIngredientName(ing, locale)}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-      {/* Reset button (if active filters and filters panel is closed) */}
-      {!showFilters && hasActiveFilters && (
-        <div className="flex justify-end mb-4">
-          <button
-            onClick={handleReset}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-porcelain/80 hover:text-porcelain bg-white/10 hover:bg-white/15 rounded-lg transition-colors border border-white/5"
-          >
-            <X className="w-3 h-3" />
-            {dict.resetFilters}
-          </button>
+            {/* Alcoholic type */}
+            <div className="px-5 py-4">
+              <label className={LABEL_CLS}>{ll.alcoholic}</label>
+              <select
+                value={filters.alcoholic}
+                onChange={e =>
+                  setFilters(f => ({ ...f, alcoholic: e.target.value as Filters['alcoholic'] }))
+                }
+                className={SELECT_CLS}
+              >
+                <option value="all">{ll.allTypes}</option>
+                <option value="alcoholic">{ll.alcoholicOnly}</option>
+                <option value="non-alcoholic">{ll.nonAlcoholicOnly}</option>
+              </select>
+            </div>
+          </div>
         </div>
       )}
 
       {/* Results count */}
-      <p className="text-sm text-porcelain/60 mb-4">
-        {filtered.length} {dict.of} {cocktails.length} {dict.cocktails}
+      <p className="text-[12px] font-mono text-porcelain/40 mb-5 tracking-wide">
+        <span className="text-porcelain/70 font-semibold">{filtered.length}</span> {dict.of}{' '}
+        <span className="text-porcelain/70 font-semibold">{cocktails.length}</span> {dict.cocktails}
       </p>
 
       {/* Grid */}
       {filtered.length > 0 ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
-          {filtered.map(cocktail => (
-            <Link
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 md:gap-5">
+          {filtered.map((cocktail, index) => (
+            <DrinkShowcaseCard
               key={cocktail.id}
-              href={`/${locale}/drinks/${cocktail.slug}`}
-              className="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5 w-[150px]"
-            >
-              <div className="aspect-square overflow-hidden bg-gray-100 w-[150px] h-[150px]">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={cocktail.thumb_url}
-                  alt={cocktail.name}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  loading="lazy"
-                  onError={e => {
-                    const img = e.currentTarget
-                    img.onerror = null
-                    img.src =
-                      'https://www.thecocktaildb.com/images/media/drink/229s6v1571804529.jpg'
-                  }}
-                />
-              </div>
-              <div className="p-2.5 text-center">
-                <h2 className="font-bold text-xs text-black group-hover:text-evergreen transition-colors line-clamp-2 leading-snug mb-0.5">
-                  {cocktail.name}
-                </h2>
-                <p className="text-[10px] text-black truncate">{cocktail.category}</p>
-              </div>
-            </Link>
+              cocktail={cocktail}
+              locale={locale}
+              index={index}
+            />
           ))}
         </div>
       ) : (
@@ -318,7 +299,7 @@ export function DrinksSearch({
           <p className="text-porcelain/60 mb-4">{dict.noCocktailsFound}</p>
           <button
             onClick={handleReset}
-            className="px-5 py-2 bg-evergreen text-porcelain rounded-lg text-sm font-medium hover:bg-hunter-green transition-colors"
+            className="px-5 py-2 bg-white/10 text-porcelain rounded-lg text-sm font-medium hover:bg-white/15 transition-colors border border-white/10"
           >
             {dict.resetFilters}
           </button>

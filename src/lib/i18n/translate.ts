@@ -29,11 +29,14 @@ type LocalizableCocktail = {
   fun_fact_en?: string | null
   fun_fact_pt?: string | null
   fun_fact_es?: string | null
+  food_pairing_en?: string | null
+  food_pairing_pt?: string | null
+  food_pairing_es?: string | null
 }
 
 function pickLocalized(
   cocktail: LocalizableCocktail,
-  field: 'instructions' | 'description' | 'history' | 'fun_fact',
+  field: 'instructions' | 'description' | 'history' | 'fun_fact' | 'food_pairing',
   locale: string
 ): string {
   const order =
@@ -62,6 +65,10 @@ export function getHistory(cocktail: LocalizableCocktail, locale: string = 'en')
 
 export function getFunFact(cocktail: LocalizableCocktail, locale: string = 'en'): string {
   return pickLocalized(cocktail, 'fun_fact', locale)
+}
+
+export function getFoodPairing(cocktail: LocalizableCocktail, locale: string = 'en'): string {
+  return pickLocalized(cocktail, 'food_pairing', locale)
 }
 
 const categoryTranslations: Record<string, Record<string, string>> = {
@@ -122,6 +129,64 @@ const categoryTranslations: Record<string, Record<string, string>> = {
   },
 }
 
+const categoryDescriptions: Record<string, Record<string, string>> = {
+  'ordinary drink': {
+    pt: 'Clássico e acessível',
+    en: 'Classic & accessible',
+    es: 'Clásico y accesible',
+  },
+  cocktail: {
+    pt: 'Mistura refinada',
+    en: 'Refined blend',
+    es: 'Mezcla refinada',
+  },
+  shake: {
+    pt: 'Cremoso e batido',
+    en: 'Creamy & blended',
+    es: 'Cremoso y batido',
+  },
+  'other / unknown': {
+    pt: 'Surpresa do bar',
+    en: 'Bar surprise',
+    es: 'Sorpresa del bar',
+  },
+  cocoa: {
+    pt: 'Quente e achocolatado',
+    en: 'Warm & chocolatey',
+    es: 'Cálido y achocolatado',
+  },
+  shot: {
+    pt: 'Rápido e intenso',
+    en: 'Quick & intense',
+    es: 'Rápido e intenso',
+  },
+  'coffee / tea': {
+    pt: 'Infusão aromática',
+    en: 'Aromatic infusion',
+    es: 'Infusión aromática',
+  },
+  'homemade liqueur': {
+    pt: 'Feito em casa',
+    en: 'Homemade craft',
+    es: 'Hecho en casa',
+  },
+  'punch / party drink': {
+    pt: 'Para compartilhar',
+    en: 'Made to share',
+    es: 'Para compartir',
+  },
+  beer: {
+    pt: 'Cerveja artesanal',
+    en: 'Craft & brewed',
+    es: 'Cerveza artesanal',
+  },
+  'soft drink / soda': {
+    pt: 'Refrescante e leve',
+    en: 'Refreshing & light',
+    es: 'Refrescante y ligero',
+  },
+}
+
 /**
  * Get category name in the specified locale
  */
@@ -141,6 +206,17 @@ export function getCategoryName(
     return getI18nValue(category.name_i18n, locale, name)
   }
   return name
+}
+
+/**
+ * Get a brief description for a category in the specified locale
+ */
+export function getCategoryDescription(categoryKey: string, locale: string): string {
+  const lower = categoryKey?.toLowerCase().trim() ?? ''
+  if (categoryDescriptions[lower]) {
+    return categoryDescriptions[lower][locale] || categoryDescriptions[lower].en || ''
+  }
+  return ''
 }
 
 /**

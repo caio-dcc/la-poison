@@ -4,12 +4,11 @@ import { cn } from '@/lib/utils'
 
 export interface BentoItem {
   title: string
-  description: string
+  description?: string
   icon: React.ReactNode
   status?: string
   tags?: string[]
   meta?: string
-  cta?: string
   colSpan?: number
   hasPersistentHover?: boolean
 }
@@ -20,81 +19,65 @@ interface BentoGridProps {
 
 function BentoGrid({ items }: BentoGridProps) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 w-full">
       {items.map((item, index) => (
         <div
           key={index}
           className={cn(
-            'group relative p-5 rounded-2xl overflow-hidden transition-all duration-300',
-            // LaPoison theme: evergreen glass panels
+            'group relative px-4 py-3 rounded-xl overflow-hidden transition-all duration-300',
             'border border-white/10 bg-evergreen/50 backdrop-blur-md',
-            'hover:shadow-[0_4px_24px_rgba(0,0,0,0.25)]',
+            'hover:shadow-[0_4px_20px_rgba(0,0,0,0.25)] hover:bg-evergreen/65',
             'hover:-translate-y-0.5 will-change-transform',
             item.colSpan === 2 ? 'md:col-span-2' : 'col-span-1',
-            item.hasPersistentHover && 'shadow-[0_4px_24px_rgba(0,0,0,0.2)] -translate-y-0.5'
+            item.hasPersistentHover && 'shadow-[0_2px_12px_rgba(0,0,0,0.2)]'
           )}
         >
-          {/* Dot-grid texture overlay */}
-          <div
-            className={cn(
-              'absolute inset-0 transition-opacity duration-300',
-              item.hasPersistentHover ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
-            )}
-          >
+          {/* Dot-grid texture on hover */}
+          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.04)_1px,transparent_1px)] bg-[length:4px_4px]" />
           </div>
 
-          {/* Gradient border glow on hover */}
-          <div
-            className={cn(
-              'absolute inset-0 -z-10 rounded-2xl p-px bg-gradient-to-br from-transparent via-white/10 to-transparent transition-opacity duration-300',
-              item.hasPersistentHover ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
-            )}
-          />
+          {/* Horizontal layout: icon left, content right */}
+          <div className="relative flex items-center gap-3">
+            <div className="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center bg-white/10 group-hover:bg-white/15 transition-all duration-300 ring-1 ring-white/10">
+              {item.icon}
+            </div>
 
-          <div className="relative flex flex-col space-y-3">
-            {/* Icon + Status row */}
-            <div className="flex items-center justify-between">
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-white/10 group-hover:bg-white/15 transition-all duration-300 ring-1 ring-white/10">
-                {item.icon}
-              </div>
-              {item.status && (
-                <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-white/10 text-porcelain/80 group-hover:bg-white/15 transition-colors duration-300 border border-white/10">
-                  {item.status}
+            <div className="min-w-0 flex-1">
+              {/* Title + meta on same line */}
+              <div className="flex items-baseline gap-1.5 flex-wrap">
+                <span className="text-[11px] font-semibold text-porcelain/70 uppercase tracking-wide leading-none">
+                  {item.title}
                 </span>
-              )}
-            </div>
-
-            {/* Title + meta + description */}
-            <div className="space-y-1.5">
-              <h3 className="font-semibold text-porcelain tracking-tight text-sm">
-                {item.title}
-                {item.meta && (
-                  <span className="ml-2 text-xs text-porcelain/50 font-normal">{item.meta}</span>
-                )}
-              </h3>
-              <p className="text-xs text-porcelain/70 leading-relaxed">{item.description}</p>
-            </div>
-
-            {/* Tags + CTA row */}
-            <div className="flex items-center justify-between pt-1">
-              <div className="flex flex-wrap gap-1.5">
-                {item.tags?.map((tag, i) => (
-                  <span
-                    key={i}
-                    className="px-2 py-0.5 rounded-md bg-white/8 border border-white/10 text-porcelain/60 text-[10px] font-medium backdrop-blur-sm hover:bg-white/15 transition-colors duration-200"
-                  >
-                    #{tag}
+                {item.status && (
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/10 text-porcelain/60 border border-white/10 leading-none">
+                    {item.status}
                   </span>
-                ))}
+                )}
               </div>
-              {item.cta && (
-                <span className="text-xs text-porcelain/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap ml-2">
-                  {item.cta}
-                </span>
+
+              {/* Meta value — the main number/label */}
+              {item.meta && (
+                <p className="text-sm font-bold text-porcelain mt-0.5 leading-tight truncate">
+                  {item.meta}
+                </p>
               )}
             </div>
           </div>
+
+          {/* Tags row — compact, below the horizontal layout */}
+          {item.tags && item.tags.length > 0 && (
+            <div className="relative flex flex-wrap gap-1 mt-2">
+              {item.tags.slice(0, 3).map((tag, i) => (
+                <span
+                  key={i}
+                  className="px-1.5 py-0.5 rounded bg-white/8 border border-white/10 text-porcelain/50 text-[9px] font-medium leading-none"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
       ))}
     </div>

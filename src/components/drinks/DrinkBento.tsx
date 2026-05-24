@@ -1,4 +1,4 @@
-import { Beaker, Clock, Gauge, Flame, Tag, Layers, Star, Zap } from 'lucide-react'
+import { Clock, Gauge, Flame, Tag, Layers, Star, Zap } from 'lucide-react'
 import { BentoGrid, type BentoItem } from '@/components/ui/bento-grid'
 
 interface DrinkBentoProps {
@@ -18,81 +18,39 @@ interface DrinkBentoProps {
 const labels = {
   pt: {
     abv: 'Teor Alcoólico',
-    abvDesc: (v: number) => `Estimativa de ${v}% ABV para este drinque.`,
-    abvNone: 'Sem álcool',
-    abvNoneDesc: 'Este drinque não contém álcool.',
+    abvNone: 'Sem Álcool',
     difficulty: 'Dificuldade',
-    difficultyDesc: (d: number) =>
-      d <= 2
-        ? 'Fácil de preparar, ideal para iniciantes.'
-        : d <= 3
-          ? 'Dificuldade moderada, requer alguma técnica.'
-          : 'Drinque avançado, recomendado para experientes.',
     difficultyLevel: (d: number) => (d <= 2 ? 'Fácil' : d <= 3 ? 'Moderado' : 'Avançado'),
-    prepTime: 'Tempo de Preparo',
-    prepTimeDesc: (m: number) => `Leva aproximadamente ${m} minutos para preparar.`,
+    prepTime: 'Preparo',
     ingredients: 'Ingredientes',
-    ingredientsDesc: (n: number) => `Este drinque usa ${n} ingrediente${n > 1 ? 's' : ''}.`,
     category: 'Categoria',
-    categoryDesc: (c: string) => `Classificado como ${c}.`,
     rating: 'Avaliação',
-    ratingDesc: (avg: number, total: number) =>
-      `${avg} de 5 estrelas com base em ${total} avaliação${total > 1 ? 'ões' : 'ão'}.`,
-    noRating: 'Sem avaliações',
-    noRatingDesc: 'Seja o primeiro a avaliar este drinque!',
-    explore: 'Ver mais →',
+    noRating: 'Sem Avaliações',
+    ratingMeta: (avg: number, total: number) => `${avg}/5 (${total})`,
   },
   en: {
-    abv: 'Alcohol Content',
-    abvDesc: (v: number) => `Estimated ${v}% ABV for this drink.`,
+    abv: 'Alcohol',
     abvNone: 'Non-Alcoholic',
-    abvNoneDesc: 'This drink contains no alcohol.',
     difficulty: 'Difficulty',
-    difficultyDesc: (d: number) =>
-      d <= 2
-        ? 'Easy to make, great for beginners.'
-        : d <= 3
-          ? 'Moderate difficulty, some technique required.'
-          : 'Advanced drink, recommended for experienced bartenders.',
     difficultyLevel: (d: number) => (d <= 2 ? 'Easy' : d <= 3 ? 'Moderate' : 'Advanced'),
     prepTime: 'Prep Time',
-    prepTimeDesc: (m: number) => `Takes approximately ${m} minutes to prepare.`,
     ingredients: 'Ingredients',
-    ingredientsDesc: (n: number) => `This drink uses ${n} ingredient${n !== 1 ? 's' : ''}.`,
     category: 'Category',
-    categoryDesc: (c: string) => `Classified as ${c}.`,
     rating: 'Rating',
-    ratingDesc: (avg: number, total: number) =>
-      `${avg} out of 5 stars based on ${total} review${total !== 1 ? 's' : ''}.`,
-    noRating: 'No Reviews Yet',
-    noRatingDesc: 'Be the first to rate this drink!',
-    explore: 'Explore →',
+    noRating: 'No Reviews',
+    ratingMeta: (avg: number, total: number) => `${avg}/5 (${total})`,
   },
   es: {
-    abv: 'Contenido Alcohólico',
-    abvDesc: (v: number) => `Estimado ${v}% ABV para esta bebida.`,
+    abv: 'Alcohol',
     abvNone: 'Sin Alcohol',
-    abvNoneDesc: 'Esta bebida no contiene alcohol.',
     difficulty: 'Dificultad',
-    difficultyDesc: (d: number) =>
-      d <= 2
-        ? 'Fácil de preparar, ideal para principiantes.'
-        : d <= 3
-          ? 'Dificultad moderada, requiere algo de técnica.'
-          : 'Bebida avanzada, recomendada para expertos.',
     difficultyLevel: (d: number) => (d <= 2 ? 'Fácil' : d <= 3 ? 'Moderado' : 'Avanzado'),
-    prepTime: 'Tiempo de Preparación',
-    prepTimeDesc: (m: number) => `Tarda aproximadamente ${m} minutos en prepararse.`,
+    prepTime: 'Preparación',
     ingredients: 'Ingredientes',
-    ingredientsDesc: (n: number) => `Esta bebida usa ${n} ingrediente${n !== 1 ? 's' : ''}.`,
     category: 'Categoría',
-    categoryDesc: (c: string) => `Clasificado como ${c}.`,
     rating: 'Calificación',
-    ratingDesc: (avg: number, total: number) =>
-      `${avg} de 5 estrellas con base en ${total} reseña${total !== 1 ? 's' : ''}.`,
     noRating: 'Sin Reseñas',
-    noRatingDesc: '¡Sé el primero en calificar esta bebida!',
-    explore: 'Explorar →',
+    ratingMeta: (avg: number, total: number) => `${avg}/5 (${total})`,
   },
 }
 
@@ -111,30 +69,16 @@ export function DrinkBento({
 
   const items: BentoItem[] = []
 
-  // 1. ABV — wide card, always first
+  // 1. ABV — only show when drink has alcohol
   if (abv && abv > 0) {
     items.push({
       title: t.abv,
       meta: `${abv}% ABV`,
-      description: t.abvDesc(abv),
+      description: '',
       icon: <Flame className="w-4 h-4 text-amber-400" />,
       status: abv >= 20 ? '🔥 Strong' : abv >= 10 ? '🥃 Medium' : '🍃 Light',
-      tags: ['ABV', 'Álcool'],
-      colSpan: 2,
+      tags: ['ABV'],
       hasPersistentHover: true,
-      cta: t.explore,
-    })
-  } else {
-    items.push({
-      title: t.abvNone,
-      meta: '0% ABV',
-      description: t.abvNoneDesc,
-      icon: <Beaker className="w-4 h-4 text-emerald-400" />,
-      status: '🌿 Sem Álcool',
-      tags: ['Zero Álcool'],
-      colSpan: 2,
-      hasPersistentHover: true,
-      cta: t.explore,
     })
   }
 
@@ -143,10 +87,9 @@ export function DrinkBento({
     items.push({
       title: t.difficulty,
       meta: t.difficultyLevel(diff),
-      description: t.difficultyDesc(diff),
+      description: '',
       icon: <Gauge className="w-4 h-4 text-rose-400" />,
       tags: [`${diff}/5`],
-      cta: t.explore,
     })
   }
 
@@ -155,21 +98,19 @@ export function DrinkBento({
     items.push({
       title: t.prepTime,
       meta: `${prep} min`,
-      description: t.prepTimeDesc(prep),
+      description: '',
       icon: <Clock className="w-4 h-4 text-sky-400" />,
       tags: [prep <= 5 ? 'Rápido' : prep <= 15 ? 'Médio' : 'Longo'],
-      cta: t.explore,
     })
   }
 
   // 4. Ingredients count
   items.push({
     title: t.ingredients,
-    meta: `${ingCount}x`,
-    description: t.ingredientsDesc(ingCount),
+    meta: `${ingCount}`,
+    description: '',
     icon: <Layers className="w-4 h-4 text-violet-400" />,
-    tags: cocktail.ingredients.slice(0, 3).map(i => i.name),
-    cta: t.explore,
+    tags: cocktail.ingredients.slice(0, 2).map(i => i.name),
   })
 
   // 5. Category
@@ -177,31 +118,26 @@ export function DrinkBento({
     items.push({
       title: t.category,
       meta: categoryName,
-      description: t.categoryDesc(categoryName),
+      description: '',
       icon: <Tag className="w-4 h-4 text-teal-400" />,
-      tags: [categoryName],
-      cta: t.explore,
     })
   }
 
-  // 6. Community rating
+  // 6. Rating
   if (averageRating && totalRatings > 0) {
     items.push({
       title: t.rating,
-      meta: `${averageRating}/5 ★`,
-      description: t.ratingDesc(averageRating, totalRatings),
+      meta: t.ratingMeta(averageRating, totalRatings),
+      description: '',
       icon: <Star className="w-4 h-4 text-amber-400" />,
       tags: ['★'.repeat(Math.round(averageRating))],
-      cta: t.explore,
     })
   } else {
     items.push({
       title: t.noRating,
       meta: '—',
-      description: t.noRatingDesc,
+      description: '',
       icon: <Zap className="w-4 h-4 text-porcelain/40" />,
-      tags: [],
-      cta: t.explore,
     })
   }
 

@@ -4,8 +4,8 @@ import { LanguageSelector } from '@/components/LanguageSelector'
 import { SmokeBackground } from '@/components/ui/SmokeBackground'
 import { Footer } from '@/components/Footer'
 import { AuthNav } from '@/components/AuthNav'
-
 import { NavigationLinks } from '@/components/NavigationLinks'
+import { MobileMenu } from '@/components/MobileMenu'
 
 async function Header({ locale }: { locale: string }) {
   const navigationLabels = {
@@ -41,8 +41,9 @@ async function Header({ locale }: { locale: string }) {
   const labels = navigationLabels[locale as keyof typeof navigationLabels] || navigationLabels.pt
 
   return (
-    <header className="border-b border-evergreen/20 bg-evergreen sticky top-0 z-50 h-16 flex items-center">
+    <header className="border-b border-white/8 bg-transparent backdrop-blur-md sticky top-0 z-50 h-16 flex items-center">
       <nav className="max-w-7xl mx-auto px-4 w-full flex items-center justify-between">
+        {/* Left: logo + desktop nav */}
         <div className="flex items-center gap-8">
           <Link
             href={`/${locale}`}
@@ -51,10 +52,21 @@ async function Header({ locale }: { locale: string }) {
           >
             LaPoison
           </Link>
-          <NavigationLinks locale={locale} labels={labels} />
-          <AuthNav locale={locale} />
+          {/* Desktop nav links — hidden on mobile */}
+          <div className="hidden md:flex items-center gap-8">
+            <NavigationLinks locale={locale} labels={labels} />
+            <AuthNav locale={locale} />
+          </div>
         </div>
-        <LanguageSelector currentLocale={locale} />
+
+        {/* Right: desktop language selector + mobile hamburger */}
+        <div className="flex items-center gap-3">
+          <div className="hidden md:block">
+            <LanguageSelector currentLocale={locale} />
+          </div>
+          {/* MobileMenu includes hamburger + drawer with language options */}
+          <MobileMenu locale={locale} labels={labels} />
+        </div>
       </nav>
     </header>
   )

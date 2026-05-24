@@ -253,10 +253,10 @@ export function ChatbotInterface({
 
   return (
     <>
-      <div className="bg-white rounded-2xl shadow-md overflow-hidden flex flex-col h-[600px]">
+      <div className="bg-transparent backdrop-blur-md rounded-2xl border border-white/10 overflow-hidden flex flex-col h-[600px] shadow-2xl">
         {/* Model selector header */}
-        <div className="flex items-center gap-2 px-4 py-3 bg-evergreen/5 border-b border-gray-100">
-          <span className="text-xs text-shadow-grey/50 font-medium mr-1">
+        <div className="flex items-center gap-2 px-4 py-3 bg-evergreen/60 border-b border-white/10">
+          <span className="text-xs text-porcelain/60 font-medium mr-1">
             {locale === 'pt' ? 'Modelo:' : locale === 'es' ? 'Modelo:' : 'Model:'}
           </span>
           {(['claude', 'gemini'] as ModelChoice[]).map(m => {
@@ -265,7 +265,13 @@ export function ChatbotInterface({
             return (
               <button
                 key={m}
-                onClick={() => setSelectedModel(m)}
+                onClick={() => {
+                  setSelectedModel(m)
+                  // Change welcome message when model changes if chat only has welcome
+                  if (messages.length === 1 && messages[0].role === 'assistant') {
+                    setMessages([{ role: 'assistant', content: getWelcome(m) }])
+                  }
+                }}
                 className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold cursor-pointer transition-all ${
                   isActive ? info.activeClass + ' border' : inactiveClass
                 }`}
@@ -278,7 +284,7 @@ export function ChatbotInterface({
         </div>
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-4">
+        <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-evergreen/20">
           {messages.map((msg, idx) => (
             <div
               key={idx}
@@ -287,8 +293,8 @@ export function ChatbotInterface({
               <div
                 className={`max-w-[80%] rounded-2xl px-4 py-3 ${
                   msg.role === 'user'
-                    ? 'bg-evergreen text-porcelain rounded-br-sm'
-                    : 'bg-gray-100 text-shadow-grey rounded-bl-sm'
+                    ? 'bg-evergreen/95 text-porcelain rounded-br-sm border border-white/10 shadow-md'
+                    : 'bg-porcelain text-black font-serif rounded-bl-sm border border-porcelain/20 shadow-md'
                 }`}
               >
                 <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
@@ -299,7 +305,7 @@ export function ChatbotInterface({
           ))}
           {isLoading && (
             <div className="flex justify-start">
-              <div className="bg-gray-100 text-shadow-grey rounded-2xl rounded-bl-sm px-4 py-3">
+              <div className="bg-porcelain text-black font-serif rounded-2xl rounded-bl-sm px-4 py-3 border border-porcelain/20 shadow-md">
                 <p className="text-sm">{dict.chatbotThinking}</p>
               </div>
             </div>
@@ -308,9 +314,9 @@ export function ChatbotInterface({
         </div>
 
         {/* Input area */}
-        <div className="border-t border-gray-200 p-4 bg-porcelain">
+        <div className="border-t border-white/10 p-4 bg-evergreen/60">
           {queriesRemaining !== -1 && (
-            <p className="text-xs text-shadow-grey/60 mb-3">
+            <p className="text-xs text-porcelain/50 mb-3">
               {queriesRemaining} {dict.chatbotQueriesRemaining}
             </p>
           )}
@@ -322,13 +328,13 @@ export function ChatbotInterface({
               onKeyDown={handleKeyDown}
               placeholder={dict.chatbotPlaceholder}
               disabled={isLoading}
-              className="flex-1 border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-evergreen resize-none disabled:bg-gray-50"
+              className="flex-1 border border-white/10 bg-black/40 text-porcelain placeholder-porcelain/40 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-hunter-green resize-none disabled:bg-neutral-900/50"
               rows={2}
             />
             <button
               onClick={handleSend}
               disabled={isLoading || !input.trim()}
-              className="bg-evergreen text-porcelain rounded-xl px-5 py-3 font-medium hover:bg-hunter-green transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center cursor-pointer"
+              className="bg-hunter-green hover:bg-evergreen border border-white/10 text-porcelain rounded-xl px-5 py-3 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center cursor-pointer"
             >
               <Send className="w-4 h-4" />
             </button>

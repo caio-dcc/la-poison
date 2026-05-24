@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { Star, Heart, MessageSquare } from 'lucide-react'
 import { getDrinkInteractiveState, toggleFavoriteAction, submitRatingAction } from './actions'
 
@@ -44,6 +44,10 @@ export function InteractiveSection({ cocktailId, locale }: { cocktailId: string;
       setLoading(false)
     }
   }, [cocktailId])
+
+  useEffect(() => {
+    loadState() // eslint-disable-line react-hooks/set-state-in-effect
+  }, [loadState])
 
   const handleFavoriteToggle = async () => {
     if (!state) return

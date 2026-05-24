@@ -7,6 +7,7 @@ interface Ingredient {
   id: string
   name: string
   slug: string
+  type?: string | null
   name_i18n?: Record<string, string> | null
 }
 
@@ -46,7 +47,7 @@ async function getAllIngredients(): Promise<Ingredient[]> {
     if (!supabaseUrl || !supabaseKey) return []
 
     const res = await fetch(
-      `${supabaseUrl}/rest/v1/ingredients?select=id,name,slug,name_i18n&order=name.asc&limit=1000`,
+      `${supabaseUrl}/rest/v1/ingredients?select=id,name,slug,type,name_i18n&order=name.asc&limit=1000`,
       { headers: { apikey: supabaseKey }, next: { revalidate: 3600 } }
     )
     if (!res.ok) return []
@@ -92,16 +93,7 @@ export default async function IngredientesPage({
   })
 
   return (
-    <main className="min-h-screen pb-16">
-      {/* Hero */}
-      <div className="bg-evergreen/80 backdrop-blur-sm py-10 px-4">
-        <div className="max-w-7xl mx-auto">
-          <h1 className="text-3xl md:text-4xl font-bold text-porcelain mb-2">{labels.heading}</h1>
-          <p className="text-porcelain/70 text-base max-w-2xl">{labels.subheading}</p>
-          <p className="text-porcelain/40 text-sm mt-2">{ingredients.length} ingredientes</p>
-        </div>
-      </div>
-
+    <main className="min-h-screen bg-[#0a0a0a] pb-16">
       <IngredientsExplorer ingredients={ingredients} locale={locale} />
 
       <script

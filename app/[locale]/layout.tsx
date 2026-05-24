@@ -1,19 +1,6 @@
 import type { Metadata } from 'next'
-import { Merriweather, Merriweather_Sans } from 'next/font/google'
 import { RootLayoutWrapper } from '@/components/RootLayoutWrapper'
 import '../globals.css'
-
-const merriweather = Merriweather({
-  variable: '--font-merriweather',
-  subsets: ['latin'],
-  weight: ['300', '400', '700', '900'],
-})
-
-const merriweatherSans = Merriweather_Sans({
-  variable: '--font-merriweather-sans',
-  subsets: ['latin'],
-  weight: ['300', '400', '500', '600', '700', '800'],
-})
 
 const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://lapoison.com'
 const localeToLang = {
@@ -77,10 +64,15 @@ export default async function RootLayout({
   const lang = localeToLang[locale as keyof typeof localeToLang] || 'pt-BR'
 
   return (
-    <html
-      lang={lang}
-      className={`${merriweather.variable} ${merriweatherSans.variable} h-full antialiased`}
-    >
+    <html lang={lang} className="h-full antialiased">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700;900&family=Merriweather+Sans:wght@300;400;500;600;700;800&display=swap"
+          rel="stylesheet"
+        />
+      </head>
       <body className="min-h-full flex flex-col relative bg-evergreen">
         <RootLayoutWrapper locale={locale}>{children}</RootLayoutWrapper>
       </body>

@@ -1,11 +1,17 @@
 @import "tailwindcss";
 
+:root {
+  --font-merriweather: 'Merriweather', Georgia, serif;
+  --font-merriweather-sans: 'Merriweather Sans', system-ui, sans-serif;
+}
+
 @theme inline {
   /* Brand colors */
   --color-evergreen: #14281D;
   --color-hunter-green: #355834;
   --color-shadow-grey: #262121;
   --color-porcelain: #F1F5F2;
+  --color-neon-white: #f0f8ff;
 
   /* Semantic */
   --color-background: #F1F5F2;
@@ -15,6 +21,9 @@
   --font-sans: var(--font-merriweather-sans);
   --font-serif: var(--font-merriweather);
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  /* Custom breakpoints */
+  --breakpoint-xs: 400px;
 }
 
 body {
@@ -25,6 +34,25 @@ body {
 
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-merriweather), Georgia, serif;
+}
+
+/* ── Cursor pointer on all interactive elements ──────── */
+a,
+button,
+select,
+summary,
+label[for],
+input[type="checkbox"],
+input[type="radio"],
+input[type="submit"],
+input[type="button"],
+[role="button"],
+[role="tab"],
+[role="link"],
+[role="menuitem"],
+[role="option"],
+[tabindex]:not([tabindex="-1"]) {
+  cursor: pointer;
 }
 
 @media print {
@@ -135,4 +163,75 @@ h1, h2, h3, h4, h5, h6 {
     margin: 15mm 15mm 15mm 15mm;
   }
 }
+
+/* ── Neon White Glow Utilities ─────────────────────────── */
+
+.neon-glow-subtle {
+  text-shadow: 0 0 6px rgba(240, 248, 255, 0.4), 0 0 12px rgba(240, 248, 255, 0.15);
+}
+
+.neon-glow-dot {
+  box-shadow: 0 0 4px 1px rgba(240, 248, 255, 0.5), 0 0 10px 2px rgba(240, 248, 255, 0.2);
+}
+
+/* ── Drink Showcase Card Width (+40px) ─────────────────── */
+
+.drink-showcase-card {
+  min-width: 0;
+}
+
+@media (min-width: 400px) {
+  .drink-showcase-card {
+    min-width: 200px; /* was ~160px implied by grid, now +40px */
+  }
+}
+
+/* ── Filter Panel Enhanced Styles ──────────────────────── */
+
+.filter-panel select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' viewBox='0 0 24 24' stroke='%23999' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 28px;
+}
+
+.filter-panel select option {
+  background: #0a0a0a;
+  color: #F1F5F2;
+}
+
+/* ── Mobile-Friendly Cards Grid ────────────────────────── */
+
+.drinks-grid {
+  justify-items: center;
+}
+
+@media (max-width: 399px) {
+  .drinks-grid {
+    grid-template-columns: 1fr;
+    max-width: 280px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+/* ── Ingredient Shockwave Border Animation ───────────────── */
+
+@keyframes border-shockwave {
+  0% {
+    box-shadow: 0 0 0 0px rgba(134, 239, 172, 0.6);
+    border-color: rgba(134, 239, 172, 0.8);
+  }
+  100% {
+    box-shadow: 0 0 0 12px rgba(134, 239, 172, 0);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+}
+
+.shockwave-item:hover {
+  animation: border-shockwave 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+
 

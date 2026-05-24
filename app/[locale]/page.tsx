@@ -58,7 +58,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
   const page = content[locale as keyof typeof content] || content.pt
 
   return (
-    <main className="flex-1 text-porcelain">
+    <main className="flex-1 text-porcelain bg-[#0a0a0a]">
       <div className="max-w-5xl mx-auto px-4 py-24 text-center">
         <h1
           className="text-5xl md:text-6xl font-bold mb-6"

@@ -83,22 +83,8 @@ export default async function ChatbotPage({
   })
 
   return (
-    <main className="min-h-screen bg-porcelain">
-      <div className="bg-evergreen text-porcelain py-8 px-4">
-        <div className="max-w-7xl mx-auto">
-          <nav className="text-sm text-porcelain/60 mb-4">
-            <Link href={`/${locale}`} className="hover:text-porcelain transition-colors">
-              {labels.home}
-            </Link>
-            {' / '}
-            <span>{labels.chatbot}</span>
-          </nav>
-          <h1 className="text-4xl font-bold">{labels.heading}</h1>
-          <p className="text-porcelain/80 mt-2">{labels.subheading}</p>
-        </div>
-      </div>
-
-      <div className="max-w-3xl mx-auto px-4 py-8">
+    <main className="min-h-screen bg-black">
+      <div className="max-w-3xl mx-auto px-4 py-12">
         <ChatbotInterface locale={locale} initialQuestion={question} />
       </div>
 

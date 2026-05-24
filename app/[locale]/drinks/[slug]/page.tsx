@@ -22,6 +22,7 @@ import {
   getHistory,
   getFunFact,
   getCategoryName,
+  getFoodPairing,
 } from '@/lib/i18n/translate'
 
 interface CocktailRow {
@@ -41,6 +42,9 @@ interface CocktailRow {
   fun_fact_en?: string | null
   fun_fact_pt?: string | null
   fun_fact_es?: string | null
+  food_pairing_en?: string | null
+  food_pairing_pt?: string | null
+  food_pairing_es?: string | null
   category: string | null
   category_id: string | null
   thumb_url: string
@@ -97,6 +101,7 @@ const pageLabels = {
     about: 'Sobre',
     history: 'História',
     funFact: 'Curiosidade',
+    foodPairing: 'Harmonização / Acompanhamentos',
     notFound: 'Drink não encontrado',
     details: 'Detalhes',
     alcoholic: 'Alcoólico',
@@ -117,6 +122,7 @@ const pageLabels = {
     about: 'About',
     history: 'History',
     funFact: 'Fun fact',
+    foodPairing: 'Food Pairings',
     notFound: 'Drink not found',
     details: 'Details',
     alcoholic: 'Alcoholic',
@@ -137,6 +143,7 @@ const pageLabels = {
     about: 'Sobre',
     history: 'Historia',
     funFact: 'Curiosidad',
+    foodPairing: 'Maridajes / Acompañamiento',
     notFound: 'Bebida no encontrada',
     details: 'Detalles',
     alcoholic: 'Alcohólico',
@@ -178,6 +185,9 @@ async function getCocktailColumnSelect(): Promise<string> {
     'fun_fact_pt',
     'fun_fact_en',
     'fun_fact_es',
+    'food_pairing_pt',
+    'food_pairing_en',
+    'food_pairing_es',
   ]
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -389,6 +399,7 @@ export default async function DrinkPage({
   const description = getDescription(cocktail, locale)
   const history = getHistory(cocktail, locale)
   const funFact = getFunFact(cocktail, locale)
+  const foodPairing = getFoodPairing(cocktail, locale)
 
   const recipeSchema = generateRecipeSchema({
     id: cocktail.id,
@@ -416,10 +427,10 @@ export default async function DrinkPage({
     : []
 
   return (
-    <main className="min-h-screen pt-6 md:pt-10 pb-16 relative">
+    <main className="min-h-screen pt-6 md:pt-10 pb-16 relative bg-black">
       <LiquidAurora />
       {/* Content */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 relative z-20">
+      <div className="w-[70vw] mx-auto px-4 sm:px-6 relative z-20">
         {/* Header: Title + Category */}
         <div className="mb-6">
           <h1 className="text-4xl md:text-5xl font-bold text-porcelain mb-1 drop-shadow-sm">
@@ -428,103 +439,117 @@ export default async function DrinkPage({
           {categoryName && <p className="text-porcelain/70 text-lg font-medium">{categoryName}</p>}
         </div>
 
-        {/* Main Image */}
-        <div className="rounded-2xl overflow-hidden shadow-lg bg-evergreen/60 ring-1 ring-white/10 backdrop-blur-md mb-8 max-w-md">
-          <img
-            src={cocktail.thumb_url}
-            alt={cocktail.name}
-            className="w-full aspect-square object-cover"
-            loading="eager"
-          />
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex flex-wrap gap-3 mb-8">
-          <DrinkQRCode
-            url={canonicalUrl}
-            drinkName={cocktail.name}
-            drinkImage={cocktail.thumb_url}
-            locale={locale}
-            isPro={isPro}
-            ingredients={cocktail.ingredients || []}
-            instructions={instructions}
-            description={description}
-            categoryName={categoryName}
-            difficulty={cocktail.difficulty || undefined}
-            abv={cocktail.abv_estimate || undefined}
-            prepTime={cocktail.prep_time_minutes || undefined}
-          />
-          <AskChatbotButton drinkName={cocktail.name} locale={locale} />
-        </div>
-
-        {/* Drink Stats Bento Grid */}
-        <div className="mb-8">
-          <DrinkBento cocktail={cocktail} categoryName={categoryName} locale={locale} />
-        </div>
-
-        {/* Content Sections (compact) */}
-        <div className="space-y-5 mb-8">
-          {/* About */}
-          {description && (
-            <div className="bg-evergreen/60 rounded-xl shadow-lg ring-1 ring-white/10 backdrop-blur-md p-4 md:p-5">
-              <h2 className="text-base font-bold text-porcelain mb-2">{labels.about}</h2>
-              <p className="text-porcelain/90 text-sm leading-relaxed">{description}</p>
+        {/* Two-Column Layout */}
+        <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] gap-6 lg:gap-8">
+          {/* ── Left Column: Image + Actions + Bento ── */}
+          <div className="space-y-6">
+            {/* Main Image */}
+            <div className="rounded-2xl overflow-hidden shadow-lg bg-evergreen/60 ring-1 ring-white/10 backdrop-blur-md">
+              <img
+                src={cocktail.thumb_url}
+                alt={cocktail.name}
+                className="w-full aspect-square object-cover"
+                loading="eager"
+              />
             </div>
-          )}
 
-          {/* Instructions */}
-          {instructions && (
-            <div className="bg-evergreen/60 rounded-xl shadow-lg ring-1 ring-white/10 backdrop-blur-md p-4 md:p-5">
-              <h2 className="text-base font-bold text-porcelain mb-3">{labels.instructions}</h2>
-              {instructionSteps.length > 1 ? (
-                <ol className="space-y-2 list-none">
-                  {instructionSteps.map((step, idx) => (
-                    <li
-                      key={idx}
-                      className="flex gap-2.5 text-porcelain/90 text-sm leading-relaxed"
-                    >
-                      <span className="flex-shrink-0 w-5 h-5 rounded-full bg-porcelain/20 text-porcelain text-xs font-bold flex items-center justify-center mt-0.5">
-                        {idx + 1}
-                      </span>
-                      <span>{step.trim()}</span>
-                    </li>
-                  ))}
-                </ol>
-              ) : (
-                <p className="text-porcelain/90 text-sm leading-relaxed">{instructions}</p>
-              )}
+            {/* Action Buttons */}
+            <div className="flex flex-wrap gap-3">
+              <DrinkQRCode
+                url={canonicalUrl}
+                drinkName={cocktail.name}
+                drinkImage={cocktail.thumb_url}
+                locale={locale}
+                isPro={isPro}
+                ingredients={cocktail.ingredients || []}
+                instructions={instructions}
+                description={description}
+                categoryName={categoryName}
+                difficulty={cocktail.difficulty || undefined}
+                abv={cocktail.abv_estimate || undefined}
+                prepTime={cocktail.prep_time_minutes || undefined}
+              />
+              <AskChatbotButton drinkName={cocktail.name} locale={locale} isPro={isPro} />
             </div>
-          )}
 
-          {/* Ingredients */}
-          {cocktail.ingredients.length > 0 && (
+            {/* Drink Stats Bento Grid */}
             <div>
-              <IngredientsCard ingredients={cocktail.ingredients} locale={locale} />
+              <DrinkBento cocktail={cocktail} categoryName={categoryName} locale={locale} />
             </div>
-          )}
+          </div>
 
-          {/* History */}
-          {history && (
-            <div className="bg-evergreen/60 rounded-xl shadow-lg ring-1 ring-white/10 backdrop-blur-md p-4 md:p-5">
-              <h2 className="text-base font-bold text-porcelain mb-2">{labels.history}</h2>
-              <p className="text-porcelain/90 text-sm leading-relaxed">{history}</p>
-            </div>
-          )}
+          {/* ── Right Column: Content Sections ── */}
+          <div className="space-y-5">
+            {/* About */}
+            {description && (
+              <div className="bg-evergreen/60 rounded-xl shadow-lg ring-1 ring-white/10 backdrop-blur-md p-4 md:p-5">
+                <h2 className="text-base font-bold text-porcelain mb-2">{labels.about}</h2>
+                <p className="text-porcelain/90 text-sm leading-relaxed">{description}</p>
+              </div>
+            )}
 
-          {/* Fun Fact */}
-          {funFact && (
-            <div className="bg-hunter-green/40 backdrop-blur-md border border-white/20 rounded-xl p-4 md:p-5 shadow-lg">
-              <h2 className="text-base font-bold text-porcelain mb-2">{labels.funFact}</h2>
-              <p className="text-porcelain/90 text-sm leading-relaxed">{funFact}</p>
-            </div>
-          )}
+            {/* Instructions */}
+            {instructions && (
+              <div className="bg-evergreen/60 rounded-xl shadow-lg ring-1 ring-white/10 backdrop-blur-md p-4 md:p-5">
+                <h2 className="text-base font-bold text-porcelain mb-3">{labels.instructions}</h2>
+                {instructionSteps.length > 1 ? (
+                  <ol className="space-y-2 list-none">
+                    {instructionSteps.map((step, idx) => (
+                      <li
+                        key={idx}
+                        className="flex gap-2.5 text-porcelain/90 text-sm leading-relaxed"
+                      >
+                        <span className="flex-shrink-0 w-5 h-5 rounded-full bg-porcelain/20 text-porcelain text-xs font-bold flex items-center justify-center mt-0.5">
+                          {idx + 1}
+                        </span>
+                        <span>{step.trim()}</span>
+                      </li>
+                    ))}
+                  </ol>
+                ) : (
+                  <p className="text-porcelain/90 text-sm leading-relaxed">{instructions}</p>
+                )}
+              </div>
+            )}
 
-          {/* YouTube */}
-          <YouTubeLink drinkName={cocktail.name} locale={locale} />
+            {/* Ingredients */}
+            {cocktail.ingredients.length > 0 && (
+              <div>
+                <IngredientsCard ingredients={cocktail.ingredients} locale={locale} />
+              </div>
+            )}
+
+            {/* History */}
+            {history && (
+              <div className="bg-evergreen/60 rounded-xl shadow-lg ring-1 ring-white/10 backdrop-blur-md p-4 md:p-5">
+                <h2 className="text-base font-bold text-porcelain mb-2">{labels.history}</h2>
+                <p className="text-porcelain/90 text-sm leading-relaxed">{history}</p>
+              </div>
+            )}
+
+            {/* Fun Fact */}
+            {funFact && (
+              <div className="bg-hunter-green/40 backdrop-blur-md border border-white/20 rounded-xl p-4 md:p-5 shadow-lg">
+                <h2 className="text-base font-bold text-porcelain mb-2">{labels.funFact}</h2>
+                <p className="text-porcelain/90 text-sm leading-relaxed">{funFact}</p>
+              </div>
+            )}
+
+            {/* Food Pairing */}
+            {foodPairing && (
+              <div className="bg-evergreen/60 rounded-xl shadow-lg ring-1 ring-white/10 backdrop-blur-md p-4 md:p-5">
+                <h2 className="text-base font-bold text-porcelain mb-2">{labels.foodPairing}</h2>
+                <p className="text-porcelain/90 text-sm leading-relaxed">{foodPairing}</p>
+              </div>
+            )}
+
+            {/* YouTube */}
+            <YouTubeLink drinkName={cocktail.name} locale={locale} />
+          </div>
         </div>
 
-        {/* Avaliações e Favoritos */}
-        <div>
+        {/* Avaliações e Favoritos — full width below */}
+        <div className="mt-8">
           <InteractiveSection cocktailId={cocktail.id} locale={locale} />
         </div>
       </div>

@@ -210,22 +210,8 @@ export default async function DrinksPage({ params }: { params: Promise<{ locale:
   const jsonLd = mergeJsonLdSchemas(breadcrumbSchema, collectionSchema)
 
   return (
-    <main className="min-h-screen">
-      <div className="text-porcelain py-8 px-4">
-        <div className="max-w-7xl mx-auto">
-          <nav className="text-sm text-porcelain/60 mb-4">
-            <Link href={`/${locale}`} className="hover:text-porcelain transition-colors">
-              {labels.home}
-            </Link>
-            {' / '}
-            <span>{labels.drinks}</span>
-          </nav>
-          <h1 className="text-4xl font-bold">{labels.title}</h1>
-          <p className="text-porcelain/80 mt-2">{labels.description}</p>
-        </div>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 pb-16">
+    <main className="min-h-screen bg-[#0a0a0a]">
+      <div className="w-full px-4 sm:px-6 lg:px-8 pt-12 pb-16">
         <DrinksSearch cocktails={cocktails} filterOptions={filterOptions} locale={locale} />
       </div>
 

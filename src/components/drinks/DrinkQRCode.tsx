@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
 import { getIngredientName } from '@/lib/i18n/translate'
+import { convertToMl } from '@/lib/measures'
 
 interface Ingredient {
   name: string
@@ -86,7 +87,54 @@ export function DrinkQRCode({
   prepTime,
 }: DrinkQRCodeProps) {
   const [showModal, setShowModal] = useState(false)
+  const [unit, setUnit] = useState<'original' | 'ml'>('original')
+  const [printing, setPrinting] = useState(false)
+  const contentRef = useRef<HTMLDivElement>(null)
   const l = labels[locale as keyof typeof labels] ?? labels.pt
+
+  const handlePrint = async () => {
+    if (!contentRef.current) return
+    setPrinting(true)
+    try {
+      const html2canvas = (await import('html2canvas')).default
+      const canvas = await html2canvas(contentRef.current, {
+        backgroundColor: '#14281D',
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        logging: false,
+      })
+      const dataUrl = canvas.toDataURL('image/png')
+      const win = window.open('', '_blank')
+      if (!win) return
+      win.document.write(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>${drinkName}</title>
+            <style>
+              * { margin: 0; padding: 0; box-sizing: border-box; }
+              body { background: white; }
+              img { max-width: 100%; display: block; }
+              @media print { body { margin: 0; } }
+            </style>
+          </head>
+          <body>
+            <img src="${dataUrl}" />
+            <script>
+              window.onload = function() {
+                window.print();
+                window.onafterprint = function() { window.close(); };
+              };
+            </script>
+          </body>
+        </html>
+      `)
+      win.document.close()
+    } finally {
+      setPrinting(false)
+    }
+  }
 
   const instructionSteps = instructions
     ? instructions.split(/(?<=[.!])\s+(?=[A-Z1-9])/).filter(s => s.trim().length > 0)
@@ -138,7 +186,7 @@ export function DrinkQRCode({
             </button>
 
             {/* Print Recipe Content */}
-            <div className="flex flex-col md:flex-row print:flex-row gap-6">
+            <div ref={contentRef} className="flex flex-col md:flex-row print:flex-row gap-6">
               {/* Left Column: Image, Stats, QR Code */}
               <div className="w-full md:w-1/3 print:w-1/3 flex flex-col gap-4">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -204,17 +252,37 @@ export function DrinkQRCode({
                 {/* Ingredients section */}
                 {ingredients.length > 0 && (
                   <div>
-                    <h3 className="text-base font-bold text-porcelain print:text-black border-b border-white/10 print:border-black/10 pb-1.5 mb-2.5">
-                      {l.ingredients}
-                    </h3>
+                    <div className="flex items-center justify-between border-b border-white/10 print:border-black/10 pb-1.5 mb-2.5">
+                      <h3 className="text-base font-bold text-porcelain print:text-black">
+                        {l.ingredients}
+                      </h3>
+                      <div className="flex items-center rounded-lg border border-white/20 print:border-black/20 overflow-hidden text-[10px] font-medium print:hidden">
+                        <button
+                          onClick={() => setUnit('original')}
+                          className={`px-2 py-1 transition-colors ${unit === 'original' ? 'bg-porcelain text-evergreen' : 'text-porcelain/70 hover:bg-white/10'}`}
+                        >
+                          Original
+                        </button>
+                        <button
+                          onClick={() => setUnit('ml')}
+                          className={`px-2 py-1 transition-colors ${unit === 'ml' ? 'bg-porcelain text-evergreen' : 'text-porcelain/70 hover:bg-white/10'}`}
+                        >
+                          ml
+                        </button>
+                      </div>
+                    </div>
                     <ul className="space-y-2 text-sm">
                       {ingredients.map((ing, idx) => {
                         const translatedName = getIngredientName(ing, locale)
+                        const measure =
+                          unit === 'ml'
+                            ? convertToMl(ing.measure_text, ing.amount_ml)
+                            : ing.measure_text || ''
                         return (
                           <li key={idx} className="flex items-baseline gap-2">
-                            {ing.measure_text && (
+                            {measure && (
                               <span className="font-semibold text-porcelain/90 print:text-black/90 min-w-[70px] shrink-0">
-                                {ing.measure_text}
+                                {measure}
                               </span>
                             )}
                             <span className="text-porcelain/70 print:text-black/70">
@@ -254,8 +322,9 @@ export function DrinkQRCode({
             {/* Print actions / PDF download buttons (hidden on print) */}
             <div className="mt-4 flex flex-col sm:flex-row gap-3 w-full print:hidden">
               <button
-                onClick={() => window.print()}
-                className="flex-1 bg-hunter-green text-porcelain font-semibold rounded-xl py-3 hover:bg-evergreen transition-colors flex items-center justify-center gap-2"
+                onClick={handlePrint}
+                disabled={printing}
+                className="flex-1 bg-hunter-green text-porcelain font-semibold rounded-xl py-3 hover:bg-evergreen transition-colors flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-wait"
               >
                 {/* Print/PDF icon */}
                 <svg
