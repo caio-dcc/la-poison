@@ -206,7 +206,7 @@ export default async function CategoryPage({
   const jsonLd = mergeJsonLdSchemas(collectionSchema, breadcrumbSchema)
 
   return (
-    <main className="min-h-screen bg-porcelain py-8 px-4">
+    <main className="min-h-screen bg-[#0a0a0a] py-8 px-4">
       <div className="max-w-6xl mx-auto">
         <nav className="mb-8 text-sm text-shadow-grey">
           <Link href={`/${locale}`} className="hover:underline">

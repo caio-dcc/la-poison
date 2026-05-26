@@ -1,5 +1,4 @@
 import { Metadata } from 'next'
-import Link from 'next/link'
 import { generateSEOMetadata, buildCanonicalUrl } from '@/lib/seo/metadata'
 import { generateBreadcrumbSchema } from '@/lib/seo/jsonld'
 import { ChatbotInterface } from '@/components/chatbot/ChatbotInterface'
@@ -83,10 +82,8 @@ export default async function ChatbotPage({
   })
 
   return (
-    <main className="min-h-screen bg-black">
-      <div className="max-w-3xl mx-auto px-4 py-12">
-        <ChatbotInterface locale={locale} initialQuestion={question} />
-      </div>
+    <main className="flex flex-1 flex-col bg-[#0a0a0a]">
+      <ChatbotInterface locale={locale} initialQuestion={question} />
 
       <script
         type="application/ld+json"

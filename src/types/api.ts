@@ -84,13 +84,27 @@ export interface User {
   updated_at: string
 }
 
+export interface UserProfile {
+  id: string
+  email: string
+  full_name?: string
+  country?: string
+  phone_number?: string
+  display_name?: string
+  is_admin: boolean
+  role: string
+  created_at: string
+  updated_at: string
+}
+
 export interface Subscription {
   id: string
   user_id: string
   stripe_customer_id: string
   stripe_subscription_id: string
   status: 'active' | 'canceled' | 'past_due' | 'incomplete'
-  plan: 'free' | 'pro_monthly' | 'pro_annual'
+  plan: 'free' | 'pro_monthly' | 'pro_yearly'
+  plan_type?: 'free' | 'pro_monthly' | 'pro_yearly' // DB column name
   current_period_start: string
   current_period_end: string
   created_at: string

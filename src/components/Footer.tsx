@@ -26,7 +26,7 @@ export function Footer({ locale }: { locale: string }) {
   const year = new Date().getFullYear()
 
   return (
-    <footer className="border-t border-evergreen/20 bg-evergreen/60 text-porcelain/60 py-6 px-4 text-sm">
+    <footer className="border-t border-white/8 bg-[#0a0a0a] text-porcelain/60 py-4 px-4 text-sm">
       <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
         <p>
           &copy; {year} LaPoison — {labels.cocktailRecipes}. {labels.allRightsReserved}.

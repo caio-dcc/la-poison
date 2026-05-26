@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { Menu, X } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
@@ -25,9 +25,16 @@ const languages = [
   { code: 'es', flag: '🇪🇸', label: 'Español' },
 ]
 
+const authLabels = {
+  pt: { auth: 'Login / Registro' },
+  en: { auth: 'Log in / Sign up' },
+  es: { auth: 'Login / Registro' },
+}
+
 export function MobileMenu({ locale, labels }: MobileMenuProps) {
   const [open, setOpen] = useState(false)
   const pathname = usePathname()
+  const router = useRouter()
 
   // Close on route change
   useEffect(() => {
@@ -64,6 +71,7 @@ export function MobileMenu({ locale, labels }: MobileMenuProps) {
   ]
 
   const languageLabel = locale === 'pt' ? 'Idioma' : locale === 'es' ? 'Idioma' : 'Language'
+  const authLabel = authLabels[locale as keyof typeof authLabels] ?? authLabels.pt
 
   return (
     <div className="md:hidden">
@@ -72,7 +80,7 @@ export function MobileMenu({ locale, labels }: MobileMenuProps) {
         onClick={() => setOpen(v => !v)}
         aria-label={open ? 'Fechar menu' : 'Abrir menu'}
         aria-expanded={open}
-        className="flex items-center justify-center w-9 h-9 rounded-lg text-porcelain/80 hover:text-porcelain hover:bg-white/10 transition-colors"
+        className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-porcelain/80 transition-colors hover:bg-white/10 hover:text-porcelain"
       >
         {open ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
       </button>
@@ -115,7 +123,7 @@ export function MobileMenu({ locale, labels }: MobileMenuProps) {
                   <button
                     onClick={() => setOpen(false)}
                     aria-label="Fechar menu"
-                    className="w-8 h-8 flex items-center justify-center rounded-lg text-porcelain/70 hover:text-porcelain hover:bg-white/10 transition-colors"
+                    className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg text-porcelain/70 transition-colors hover:bg-white/10 hover:text-porcelain"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -129,7 +137,7 @@ export function MobileMenu({ locale, labels }: MobileMenuProps) {
                       <Link
                         key={link.href}
                         href={link.href}
-                        className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                        className={`cursor-pointer rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
                           isActive
                             ? 'bg-white/15 text-porcelain'
                             : 'text-porcelain/70 hover:text-porcelain hover:bg-white/10'
@@ -146,21 +154,28 @@ export function MobileMenu({ locale, labels }: MobileMenuProps) {
                   <p className="text-xs font-semibold text-porcelain/50 uppercase tracking-wider mb-3">
                     {languageLabel}
                   </p>
-                  <div className="flex flex-col gap-1.5">
-                    {languages.map(lang => (
-                      <Link
-                        key={lang.code}
-                        href={getLocaleUrl(lang.code)}
-                        className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                          locale === lang.code
-                            ? 'bg-white/15 text-porcelain border border-white/20'
-                            : 'text-porcelain/70 hover:text-porcelain hover:bg-white/10'
-                        }`}
-                      >
-                        <span>{lang.flag}</span>
-                        <span>{lang.label}</span>
-                      </Link>
-                    ))}
+                  <div className="flex items-center gap-2">
+                    <label className="sr-only" htmlFor="mobile-language-selector">
+                      {languageLabel}
+                    </label>
+                    <select
+                      id="mobile-language-selector"
+                      value={locale}
+                      onChange={event => router.push(getLocaleUrl(event.target.value))}
+                      className="min-w-0 flex-1 cursor-pointer rounded-lg border border-white/15 bg-black/40 px-3 py-2 text-sm font-medium text-porcelain transition-colors hover:border-white/25 focus:border-white/35 focus:outline-none focus:ring-2 focus:ring-white/15"
+                    >
+                      {languages.map(lang => (
+                        <option key={lang.code} value={lang.code} className="cursor-pointer">
+                          {lang.flag} {lang.label}
+                        </option>
+                      ))}
+                    </select>
+                    <Link
+                      href={`/${locale}/login`}
+                      className="shrink-0 cursor-pointer rounded-lg border border-white/15 px-3 py-2 text-sm font-medium text-porcelain transition-colors hover:border-white/25 hover:bg-white/10"
+                    >
+                      {authLabel.auth}
+                    </Link>
                   </div>
                 </div>
               </div>

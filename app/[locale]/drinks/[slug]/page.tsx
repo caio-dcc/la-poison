@@ -427,7 +427,7 @@ export default async function DrinkPage({
     : []
 
   return (
-    <main className="min-h-screen pt-6 md:pt-10 pb-16 relative bg-black">
+    <main className="min-h-screen pt-6 md:pt-10 pb-16 relative bg-[#0a0a0a]">
       <LiquidAurora />
       {/* Content */}
       <div className="w-[70vw] mx-auto px-4 sm:px-6 relative z-20">

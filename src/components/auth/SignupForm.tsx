@@ -4,27 +4,41 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/utils/supabase/client'
 import { useLanguage } from '@/hooks/useLanguage'
-function GoogleIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-      <path
-        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-        fill="#4285F4"
-      />
-      <path
-        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-        fill="#34A853"
-      />
-      <path
-        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"
-        fill="#FBBC05"
-      />
-      <path
-        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-        fill="#EA4335"
-      />
-    </svg>
-  )
+
+const COUNTRIES = [
+  { code: 'BR', name: 'Brasil', phone_prefix: '+55' },
+  { code: 'US', name: 'United States', phone_prefix: '+1' },
+  { code: 'MX', name: 'México', phone_prefix: '+52' },
+  { code: 'ES', name: 'España', phone_prefix: '+34' },
+  { code: 'PT', name: 'Portugal', phone_prefix: '+351' },
+  { code: 'AR', name: 'Argentina', phone_prefix: '+54' },
+  { code: 'CL', name: 'Chile', phone_prefix: '+56' },
+  { code: 'CO', name: 'Colombia', phone_prefix: '+57' },
+  { code: 'PE', name: 'Perú', phone_prefix: '+51' },
+]
+
+function validatePassword(password: string): { valid: boolean; errors: string[] } {
+  const errors: string[] = []
+  if (password.length < 8) errors.push('Mínimo 8 caracteres')
+  if (!/[A-Z]/.test(password)) errors.push('Pelo menos 1 letra maiúscula')
+  if (!/[0-9]/.test(password)) errors.push('Pelo menos 1 número')
+  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password))
+    errors.push('Pelo menos 1 caractere especial')
+  return { valid: errors.length === 0, errors }
+}
+
+function validatePhone(phone: string, countryCode: string): { valid: boolean; error?: string } {
+  if (!phone.trim()) return { valid: false, error: 'Telefone é obrigatório' }
+  const cleanPhone = phone.replace(/[\s-]/g, '')
+  if (!cleanPhone.startsWith('+')) return { valid: false, error: 'Telefone deve começar com +' }
+  const country = COUNTRIES.find(c => c.code === countryCode)
+  if (!country) return { valid: false, error: 'País inválido' }
+  if (!cleanPhone.startsWith(country.phone_prefix)) {
+    return { valid: false, error: `Telefone deve começar com ${country.phone_prefix}` }
+  }
+  const digitCount = cleanPhone.replace(/\D/g, '').length
+  if (digitCount < 10) return { valid: false, error: 'Telefone incompleto' }
+  return { valid: true }
 }
 
 export default function SignupForm() {
@@ -33,34 +47,68 @@ export default function SignupForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [fullName, setFullName] = useState('')
+  const [country, setCountry] = useState('BR')
+  const [phone, setPhone] = useState('+55 ')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [googleLoading, setGoogleLoading] = useState(false)
+  const [passwordErrors, setPasswordErrors] = useState<string[]>([])
+  const [phoneError, setPhoneError] = useState('')
   const [confirmationSent, setConfirmationSent] = useState(false)
 
   const supabase = createClient()
+
+  const handlePasswordChange = (value: string) => {
+    setPassword(value)
+    setPasswordErrors(validatePassword(value).errors)
+  }
+
+  const handlePhoneChange = (value: string) => {
+    setPhone(value)
+    setPhoneError(validatePhone(value, country).error || '')
+  }
+
+  const handleCountryChange = (newCountry: string) => {
+    setCountry(newCountry)
+    const countryData = COUNTRIES.find(c => c.code === newCountry)
+    if (countryData) setPhone(countryData.phone_prefix + ' ')
+    setPhoneError(validatePhone(phone, newCountry).error || '')
+  }
 
   const handleEmailSignup = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
 
-    if (password !== confirmPassword) {
-      setError('Passwords do not match')
+    if (!fullName.trim()) {
+      setError('Nome completo é obrigatório')
       return
     }
 
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters')
+    const passwordValidation = validatePassword(password)
+    if (!passwordValidation.valid) {
+      setError('Senha não atende aos requisitos')
+      return
+    }
+
+    if (password !== confirmPassword) {
+      setError('Senhas não coincidem')
+      return
+    }
+
+    const phoneValidation = validatePhone(phone, country)
+    if (!phoneValidation.valid) {
+      setError(phoneValidation.error || 'Telefone inválido')
       return
     }
 
     setLoading(true)
 
     try {
-      const { error: signUpError } = await supabase.auth.signUp({
+      const { data: authData, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: {
+          data: { full_name: fullName },
           emailRedirectTo: `${window.location.origin}/api/auth/callback`,
         },
       })
@@ -71,33 +119,20 @@ export default function SignupForm() {
         return
       }
 
+      if (authData.user) {
+        await supabase
+          .from('profiles')
+          .update({ full_name: fullName, country, phone_number: phone })
+          .eq('id', authData.user.id)
+          .then(({ error: profileError }) => {
+            if (profileError) console.error('Profile update error:', profileError)
+          })
+      }
+
       setConfirmationSent(true)
     } catch {
       setError(dict.signupError)
       setLoading(false)
-    }
-  }
-
-  const handleGoogleSignup = async () => {
-    setError('')
-    setGoogleLoading(true)
-
-    try {
-      const origin = window.location.origin
-      const { error: oauthError } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${origin}/api/auth/callback`,
-        },
-      })
-
-      if (oauthError) {
-        setError(oauthError.message || dict.signupError)
-      }
-    } catch {
-      setError(dict.signupError)
-    } finally {
-      setGoogleLoading(false)
     }
   }
 
@@ -107,31 +142,32 @@ export default function SignupForm() {
         <div className="bg-white rounded-xl shadow-md p-8 text-center">
           <h1 className="text-2xl font-bold text-evergreen mb-4">{dict.checkEmail}</h1>
           <p className="text-shadow-grey mb-6">
-            We&apos;ve sent a confirmation email to <strong>{email}</strong>. Click the link in the
-            email to activate your account.
+            Verifique seu email em <strong>{email}</strong> para confirmar sua conta.
           </p>
           <Link
-            href="/login"
-            className="inline-block text-evergreen hover:text-hunter-green font-semibold transition-colors"
+            href="/pt/login"
+            className="inline-block text-evergreen hover:text-hunter-green font-semibold transition-colors cursor-pointer"
           >
-            ← Back to Login
+            ← Voltar para Login
           </Link>
         </div>
       </div>
     )
   }
 
+  const phoneValidation = validatePhone(phone, country)
+
   return (
-    <div className="max-w-md w-full mx-auto">
+    <div className="max-w-2xl w-full mx-auto">
       <div className="bg-white rounded-xl shadow-md p-8">
-        <h1 className="text-2xl font-bold text-evergreen mb-2">{dict.signup}</h1>
+        <h1 className="text-2xl font-bold text-evergreen mb-2">Criar Conta</h1>
         <p className="text-sm text-shadow-grey mb-8">
-          {dict.alreadyHaveAccount}{' '}
+          Já tem conta?{' '}
           <Link
-            href="/login"
-            className="text-evergreen hover:text-hunter-green font-semibold transition-colors"
+            href="/pt/login"
+            className="text-evergreen hover:text-hunter-green font-semibold transition-colors cursor-pointer"
           >
-            {dict.login}
+            Faça login
           </Link>
         </p>
 
@@ -141,10 +177,26 @@ export default function SignupForm() {
           </div>
         )}
 
-        <form onSubmit={handleEmailSignup} className="space-y-4 mb-6">
+        <form onSubmit={handleEmailSignup} className="space-y-4">
+          <div>
+            <label htmlFor="fullName" className="block text-sm font-semibold text-evergreen mb-2">
+              Nome Completo *
+            </label>
+            <input
+              id="fullName"
+              type="text"
+              required
+              value={fullName}
+              onChange={e => setFullName(e.target.value)}
+              className="w-full border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-evergreen px-4 py-3 text-sm"
+              placeholder="Seu nome completo"
+              disabled={loading}
+            />
+          </div>
+
           <div>
             <label htmlFor="email" className="block text-sm font-semibold text-evergreen mb-2">
-              {dict.email}
+              Email *
             </label>
             <input
               id="email"
@@ -158,20 +210,79 @@ export default function SignupForm() {
             />
           </div>
 
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="country" className="block text-sm font-semibold text-evergreen mb-2">
+                País *
+              </label>
+              <select
+                id="country"
+                value={country}
+                onChange={e => handleCountryChange(e.target.value)}
+                className="w-full border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-evergreen px-4 py-3 text-sm cursor-pointer"
+                disabled={loading}
+              >
+                {COUNTRIES.map(c => (
+                  <option key={c.code} value={c.code}>
+                    {c.name} ({c.phone_prefix})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label htmlFor="phone" className="block text-sm font-semibold text-evergreen mb-2">
+                Telefone *
+              </label>
+              <input
+                id="phone"
+                type="tel"
+                required
+                value={phone}
+                onChange={e => handlePhoneChange(e.target.value)}
+                className={`w-full border rounded-lg focus:outline-none focus:ring-2 px-4 py-3 text-sm ${
+                  phoneError
+                    ? 'border-red-300 focus:ring-red-500'
+                    : 'border-gray-300 focus:ring-evergreen'
+                }`}
+                placeholder="+55 11 98765-4321"
+                disabled={loading}
+              />
+              {phoneError && <p className="text-red-600 text-xs mt-1">{phoneError}</p>}
+            </div>
+          </div>
+
           <div>
             <label htmlFor="password" className="block text-sm font-semibold text-evergreen mb-2">
-              {dict.password}
+              Senha *
             </label>
             <input
               id="password"
               type="password"
               required
               value={password}
-              onChange={e => setPassword(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-evergreen px-4 py-3 text-sm"
+              onChange={e => handlePasswordChange(e.target.value)}
+              className={`w-full border rounded-lg focus:outline-none focus:ring-2 px-4 py-3 text-sm ${
+                passwordErrors.length > 0
+                  ? 'border-red-300 focus:ring-red-500'
+                  : 'border-gray-300 focus:ring-evergreen'
+              }`}
               placeholder="••••••••"
               disabled={loading}
             />
+            {password && passwordErrors.length > 0 && (
+              <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-red-700 text-xs font-semibold mb-1">Requisitos não atendidos:</p>
+                <ul className="text-red-600 text-xs space-y-1">
+                  {passwordErrors.map((err, idx) => (
+                    <li key={idx}>• {err}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {password && passwordErrors.length === 0 && (
+              <p className="text-green-600 text-xs mt-1">✓ Senha atende aos requisitos</p>
+            )}
           </div>
 
           <div>
@@ -179,7 +290,7 @@ export default function SignupForm() {
               htmlFor="confirmPassword"
               className="block text-sm font-semibold text-evergreen mb-2"
             >
-              {dict.confirmPassword}
+              Confirmar Senha *
             </label>
             <input
               id="confirmPassword"
@@ -187,38 +298,30 @@ export default function SignupForm() {
               required
               value={confirmPassword}
               onChange={e => setConfirmPassword(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-evergreen px-4 py-3 text-sm"
+              className={`w-full border rounded-lg focus:outline-none focus:ring-2 px-4 py-3 text-sm ${
+                confirmPassword && password !== confirmPassword
+                  ? 'border-red-300 focus:ring-red-500'
+                  : 'border-gray-300 focus:ring-evergreen'
+              }`}
               placeholder="••••••••"
               disabled={loading}
             />
+            {confirmPassword && password === confirmPassword && password.length > 0 && (
+              <p className="text-green-600 text-xs mt-1">✓ Senhas coincidem</p>
+            )}
+            {confirmPassword && password !== confirmPassword && (
+              <p className="text-red-600 text-xs mt-1">✗ Senhas não coincidem</p>
+            )}
           </div>
 
           <button
             type="submit"
-            disabled={loading}
-            className="w-full bg-evergreen text-porcelain hover:bg-hunter-green transition-colors rounded-lg py-3 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={loading || passwordErrors.length > 0 || !phoneValidation.valid}
+            className="w-full bg-evergreen text-porcelain hover:bg-hunter-green transition-colors rounded-lg py-3 font-semibold disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer mt-6"
           >
-            {loading ? dict.loading : dict.signup}
+            {loading ? 'Criando conta...' : 'Criar Conta'}
           </button>
         </form>
-
-        <div className="relative mb-6">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-300" />
-          </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-white text-shadow-grey">{dict.or}</span>
-          </div>
-        </div>
-
-        <button
-          onClick={handleGoogleSignup}
-          disabled={googleLoading || loading}
-          className="w-full border border-gray-300 bg-white text-shadow-grey hover:bg-gray-50 transition-colors rounded-lg py-3 font-medium flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <GoogleIcon />
-          {googleLoading ? dict.loading : dict.signupWithGoogle}
-        </button>
       </div>
     </div>
   )

@@ -217,7 +217,7 @@ export default async function IngredientPage({
   const jsonLd = mergeJsonLdSchemas(collectionSchema, breadcrumbSchema)
 
   return (
-    <main className="min-h-screen bg-porcelain">
+    <main className="min-h-screen bg-[#0a0a0a]">
       <div className="bg-evergreen text-porcelain py-8 px-4">
         <div className="max-w-6xl mx-auto">
           <nav className="text-sm text-porcelain/60 mb-3">

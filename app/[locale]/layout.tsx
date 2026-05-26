@@ -73,7 +73,7 @@ export default async function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="min-h-full flex flex-col relative bg-evergreen">
+      <body className="min-h-full flex flex-col relative bg-[#0a0a0a]">
         <RootLayoutWrapper locale={locale}>{children}</RootLayoutWrapper>
       </body>
     </html>

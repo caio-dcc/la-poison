@@ -40,7 +40,7 @@ export function NavigationLinks({
           <Link
             key={link.href}
             href={link.href}
-            className={`text-base transition-colors relative py-1 ${
+            className={`relative cursor-pointer py-1 text-base transition-colors ${
               isActive ? 'text-porcelain font-semibold' : 'text-porcelain/80 hover:text-porcelain'
             }`}
           >
