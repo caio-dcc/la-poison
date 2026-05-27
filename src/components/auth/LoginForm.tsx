@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { createClient } from '@/utils/supabase/client'
 import { useLanguage } from '@/hooks/useLanguage'
 
-export default function LoginForm() {
+export default function LoginForm({ isTabbed = false }: { isTabbed?: boolean }) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const redirect = searchParams.get('redirect') || '/'
@@ -43,19 +43,26 @@ export default function LoginForm() {
     }
   }
 
+  const containerClass = isTabbed ? 'w-full' : 'max-w-md w-full mx-auto'
+  const boxClass = isTabbed ? 'bg-transparent' : 'bg-white rounded-xl shadow-md p-8'
+
   return (
-    <div className="max-w-md w-full mx-auto">
-      <div className="bg-white rounded-xl shadow-md p-8">
-        <h1 className="text-2xl font-bold text-evergreen mb-2">{dict.login}</h1>
-        <p className="text-sm text-shadow-grey mb-8">
-          {dict.dontHaveAccount}{' '}
-          <Link
-            href="/signup"
-            className="text-evergreen hover:text-hunter-green font-semibold transition-colors"
-          >
-            {dict.signup}
-          </Link>
-        </p>
+    <div className={containerClass}>
+      <div className={boxClass}>
+        {!isTabbed && (
+          <>
+            <h1 className="text-2xl font-bold text-evergreen mb-2">{dict.login}</h1>
+            <p className="text-sm text-shadow-grey mb-8">
+              {dict.dontHaveAccount}{' '}
+              <Link
+                href="/signup"
+                className="text-evergreen hover:text-hunter-green font-semibold transition-colors cursor-pointer"
+              >
+                {dict.signup}
+              </Link>
+            </p>
+          </>
+        )}
 
         {error && (
           <div className="mb-6 p-3 bg-red-50 border border-red-200 rounded-lg">
@@ -107,7 +114,7 @@ export default function LoginForm() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-evergreen text-porcelain hover:bg-hunter-green transition-colors rounded-lg py-3 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-evergreen text-porcelain hover:bg-hunter-green transition-colors rounded-lg py-3 font-semibold disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
             {loading ? dict.loading : dict.login}
           </button>

@@ -20,9 +20,9 @@ interface MobileMenuProps {
 }
 
 const languages = [
-  { code: 'pt', flag: '🇧🇷', label: 'Português' },
-  { code: 'en', flag: '🇬🇧', label: 'English' },
-  { code: 'es', flag: '🇪🇸', label: 'Español' },
+  { code: 'pt', flag: '🇧🇷', label: 'PT' },
+  { code: 'en', flag: '🇬🇧', label: 'EN' },
+  { code: 'es', flag: '🇪🇸', label: 'ES' },
 ]
 
 const authLabels = {
@@ -165,8 +165,12 @@ export function MobileMenu({ locale, labels }: MobileMenuProps) {
                       className="min-w-0 flex-1 cursor-pointer rounded-lg border border-white/15 bg-black/40 px-3 py-2 text-sm font-medium text-porcelain transition-colors hover:border-white/25 focus:border-white/35 focus:outline-none focus:ring-2 focus:ring-white/15"
                     >
                       {languages.map(lang => (
-                        <option key={lang.code} value={lang.code} className="cursor-pointer">
-                          {lang.flag} {lang.label}
+                        <option
+                          key={lang.code}
+                          value={lang.code}
+                          className="cursor-pointer bg-[#0a0a0a]"
+                        >
+                          {lang.flag} - {lang.label}
                         </option>
                       ))}
                     </select>

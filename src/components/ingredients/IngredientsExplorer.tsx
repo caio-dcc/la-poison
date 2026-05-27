@@ -16,9 +16,10 @@ import {
   HelpCircle,
   Check,
   Printer,
-  GripHorizontal,
+  ChevronUp,
+  ChevronDown,
+  ChevronsUpDown,
 } from 'lucide-react'
-import { motion } from 'framer-motion'
 import { QRCodeSVG } from 'qrcode.react'
 
 interface Ingredient {
@@ -47,15 +48,19 @@ const labels = {
     modalTitle: 'Drinks possíveis',
     modalSubtitle: (n: number) => `${n} drink${n !== 1 ? 's' : ''} encontrado${n !== 1 ? 's' : ''}`,
     close: 'Fechar',
-    viewDrink: 'Ver receita',
     exact: 'Completo',
     missing: (n: number) => `falta ${n}`,
     noResults: 'Nenhum drink encontrado com esses ingredientes.',
-    selectPrompt: 'Selecione ingredientes acima.',
     loading: 'Buscando drinks...',
     heading: 'Explore por Ingredientes',
     subheading: 'Marque o que você tem em casa e descubra os drinks possíveis.',
     total: (n: number) => `${n} ingredientes`,
+    colName: 'Nome',
+    colType: 'Tipo',
+    typeAll: 'Todos',
+    selectAll: 'Selecionar todos',
+    clearAll: 'Limpar seleção',
+    noIngredients: 'Nenhum ingrediente encontrado.',
   },
   en: {
     search: 'Search ingredients...',
@@ -65,15 +70,19 @@ const labels = {
     modalTitle: 'Possible drinks',
     modalSubtitle: (n: number) => `${n} drink${n !== 1 ? 's' : ''} found`,
     close: 'Close',
-    viewDrink: 'View recipe',
     exact: 'Complete',
     missing: (n: number) => `missing ${n}`,
     noResults: 'No drinks found with those ingredients.',
-    selectPrompt: 'Select ingredients above.',
     loading: 'Searching drinks...',
     heading: 'Explore by Ingredients',
     subheading: 'Check what you have at home and discover possible drinks.',
     total: (n: number) => `${n} ingredients`,
+    colName: 'Name',
+    colType: 'Type',
+    typeAll: 'All',
+    selectAll: 'Select all',
+    clearAll: 'Clear selection',
+    noIngredients: 'No ingredients found.',
   },
   es: {
     search: 'Buscar ingredientes...',
@@ -84,15 +93,19 @@ const labels = {
     modalSubtitle: (n: number) =>
       `${n} bebida${n !== 1 ? 's' : ''} encontrada${n !== 1 ? 's' : ''}`,
     close: 'Cerrar',
-    viewDrink: 'Ver receta',
     exact: 'Completo',
     missing: (n: number) => `faltan ${n}`,
     noResults: 'No se encontraron bebidas con esos ingredientes.',
-    selectPrompt: 'Selecciona ingredientes arriba.',
     loading: 'Buscando bebidas...',
     heading: 'Explorar por Ingredientes',
     subheading: 'Marca lo que tienes en casa y descubre las bebidas posibles.',
     total: (n: number) => `${n} ingredientes`,
+    colName: 'Nombre',
+    colType: 'Tipo',
+    typeAll: 'Todos',
+    selectAll: 'Seleccionar todos',
+    clearAll: 'Limpiar selección',
+    noIngredients: 'No se encontraron ingredientes.',
   },
 }
 
@@ -212,6 +225,19 @@ function getIngredientName(ing: Ingredient, locale: string): string {
   return ing.name
 }
 
+function SortIcon({
+  col,
+  sortKey,
+  sortDir,
+}: {
+  col: 'name' | 'type'
+  sortKey: string
+  sortDir: string
+}) {
+  if (sortKey !== col) return <ChevronsUpDown className="w-3 h-3 opacity-30" />
+  return sortDir === 'asc' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />
+}
+
 export function IngredientsExplorer({
   ingredients,
   locale,
@@ -222,81 +248,120 @@ export function IngredientsExplorer({
   const l = labels[locale as keyof typeof labels] ?? labels.pt
 
   const [query, setQuery] = useState('')
+  const [typeFilter, setTypeFilter] = useState<string | null>(null)
+  const [sortKey, setSortKey] = useState<'name' | 'type'>('name')
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [modalOpen, setModalOpen] = useState(false)
   const [results, setResults] = useState<DrinkResult[]>([])
   const [loading, setLoading] = useState(false)
-  const [widgetOpen, setWidgetOpen] = useState(false)
   const [, startTransition] = useTransition()
   const modalRef = useRef<HTMLDivElement>(null)
-  const widgetInputRef = useRef<HTMLInputElement>(null)
-  const widgetRef = useRef<HTMLDivElement>(null)
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
 
-  // Drag state for desktop (≥1366px wide)
-  // Uses RAF + direct DOM transform to avoid React re-render on every mousemove
-  const isDragging = useRef(false)
-  const dragOffset = useRef({ x: 0, y: 0 })
-  const dragPos = useRef({ x: 0, y: 0 })
-  const rafId = useRef<number | null>(null)
-  // Track whether widget has been dragged (to switch from bottom/right anchor to top/left)
-  const [hasDragged, setHasDragged] = useState(false)
-  // Neon intro glow — active for 1.8s on mount
-  const [neonIntro, setNeonIntro] = useState(true)
-  useEffect(() => {
-    const t = setTimeout(() => setNeonIntro(false), 1800)
-    return () => clearTimeout(t)
-  }, [])
+  const uniqueTypes = useMemo(() => {
+    const counts = new Map<string, number>()
+    ingredients.forEach(ing => {
+      const t = ing.type ?? 'other'
+      counts.set(t, (counts.get(t) ?? 0) + 1)
+    })
+    return Array.from(counts.entries()).sort((a, b) => b[1] - a[1])
+  }, [ingredients])
 
-  const handleDragStart = useCallback((e: React.MouseEvent) => {
-    if (window.innerWidth < 1366) return
-    e.preventDefault()
-    isDragging.current = true
+  const filteredAndSorted = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    const result = ingredients.filter(ing => {
+      if (q) {
+        const nameMatch =
+          ing.name.toLowerCase().includes(q) ||
+          (ing.name_i18n
+            ? Object.values(ing.name_i18n).some(v => v?.toLowerCase().includes(q))
+            : false)
+        if (!nameMatch) return false
+      }
+      if (typeFilter && (ing.type ?? 'other') !== typeFilter) return false
+      return true
+    })
 
-    const el = widgetRef.current
-    if (!el) return
+    return result.slice().sort((a, b) => {
+      let aVal: string, bVal: string
+      if (sortKey === 'name') {
+        aVal = getIngredientName(a, locale).toLowerCase()
+        bVal = getIngredientName(b, locale).toLowerCase()
+      } else {
+        aVal = (a.type ?? 'other').toLowerCase()
+        bVal = (b.type ?? 'other').toLowerCase()
+      }
+      const cmp = aVal.localeCompare(bVal)
+      return sortDir === 'asc' ? cmp : -cmp
+    })
+  }, [ingredients, query, typeFilter, sortKey, sortDir, locale])
 
-    // Initialize drag position from current rendered position
-    const rect = el.getBoundingClientRect()
-    dragPos.current = { x: rect.left, y: rect.top }
-    dragOffset.current = { x: e.clientX - rect.left, y: e.clientY - rect.top }
+  const allVisibleSelected =
+    filteredAndSorted.length > 0 && filteredAndSorted.every(i => selected.has(i.id))
 
-    // Switch to absolute top/left anchor once drag starts
-    setHasDragged(true)
+  function toggle(id: string) {
+    setSelected(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
 
-    function applyTransform(x: number, y: number) {
-      if (!el) return
-      el.style.left = `${x}px`
-      el.style.top = `${y}px`
-      el.style.right = 'auto'
-      el.style.bottom = 'auto'
+  function toggleSort(key: 'name' | 'type') {
+    if (sortKey === key) {
+      setSortDir(d => (d === 'asc' ? 'desc' : 'asc'))
+    } else {
+      setSortKey(key)
+      setSortDir('asc')
     }
+  }
 
-    function onMove(ev: MouseEvent) {
-      if (!isDragging.current) return
-      if (rafId.current !== null) cancelAnimationFrame(rafId.current)
-      rafId.current = requestAnimationFrame(() => {
-        const ww = window.innerWidth
-        const wh = window.innerHeight
-        const w = el?.offsetWidth ?? 448
-        const h = el?.offsetHeight ?? 60
-        const x = Math.max(0, Math.min(ev.clientX - dragOffset.current.x, ww - w))
-        const y = Math.max(0, Math.min(ev.clientY - dragOffset.current.y, wh - h))
-        dragPos.current = { x, y }
-        applyTransform(x, y)
+  function toggleSelectAll() {
+    if (allVisibleSelected) {
+      setSelected(prev => {
+        const next = new Set(prev)
+        filteredAndSorted.forEach(i => next.delete(i.id))
+        return next
+      })
+    } else {
+      setSelected(prev => {
+        const next = new Set(prev)
+        filteredAndSorted.forEach(i => next.add(i.id))
+        return next
       })
     }
+  }
 
-    function onUp() {
-      isDragging.current = false
-      if (rafId.current !== null) cancelAnimationFrame(rafId.current)
-      window.removeEventListener('mousemove', onMove)
-      window.removeEventListener('mouseup', onUp)
+  async function findDrinks() {
+    if (selected.size === 0) return
+    setLoading(true)
+    setModalOpen(true)
+    setResults([])
+    try {
+      const ids = Array.from(selected).join(',')
+      const res = await fetch(`/api/ingredients/search?ids=${ids}`)
+      if (res.ok) setResults(await res.json())
+    } finally {
+      setLoading(false)
     }
+  }
 
-    window.addEventListener('mousemove', onMove)
-    window.addEventListener('mouseup', onUp)
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') setModalOpen(false)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
   }, [])
+
+  useEffect(() => {
+    document.body.style.overflow = modalOpen ? 'hidden' : ''
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [modalOpen])
 
   const printList = useCallback(() => {
     const win = window.open('', '_blank')
@@ -308,7 +373,6 @@ export function IngredientsExplorer({
           d.matchCount === d.totalIngredients
             ? '✓ Completo'
             : `falta ${d.totalIngredients - d.matchCount}`
-        // Encode as data URL for QR: use a canvas approach via img src from google charts API — no external dep needed
         const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${encodeURIComponent(url)}`
         return `
         <tr>
@@ -351,208 +415,78 @@ export function IngredientsExplorer({
     }, 600)
   }, [results, locale, baseUrl])
 
-  function toggle(id: string) {
-    setSelected(prev => {
-      const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
-      return next
-    })
-  }
-
-  async function findDrinks() {
-    if (selected.size === 0) return
-    setLoading(true)
-    setModalOpen(true)
-    setResults([])
-    try {
-      const ids = Array.from(selected).join(',')
-      const res = await fetch(`/api/ingredients/search?ids=${ids}`)
-      if (res.ok) setResults(await res.json())
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') setModalOpen(false)
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [])
-
-  useEffect(() => {
-    document.body.style.overflow = modalOpen ? 'hidden' : ''
-    return () => {
-      document.body.style.overflow = ''
-    }
-  }, [modalOpen])
-
-  useEffect(() => {
-    if (widgetOpen) {
-      setTimeout(() => widgetInputRef.current?.focus(), 50)
-    }
-  }, [widgetOpen])
-
-  // Search across all languages stored in name_i18n
-  const filtered = useMemo(() => {
-    if (!query.trim()) return ingredients
-    const q = query.toLowerCase()
-    return ingredients.filter(ing => {
-      if (ing.name.toLowerCase().includes(q)) return true
-      if (ing.name_i18n) {
-        return Object.values(ing.name_i18n).some(v => v?.toLowerCase().includes(q))
-      }
-      return false
-    })
-  }, [query, ingredients])
-
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
-      <style>{`
-        @keyframes neon-pulse {
-          from { box-shadow: 0 0 10px 2px rgba(57,255,20,0.4), 0 12px 48px rgba(0,0,0,0.75); border-color: rgba(57,255,20,0.7); }
-          to   { box-shadow: 0 0 28px 8px rgba(57,255,20,0.75), 0 12px 48px rgba(0,0,0,0.75); border-color: #39FF14; }
-        }
-      `}</style>
-      {/* Header */}
-      <div className="w-full px-[15%] pt-10 pb-6">
+      {/* Page header */}
+      <div className="w-full px-4 md:px-[10%] pt-10 pb-6">
         <h1 className="text-3xl md:text-4xl font-serif font-bold text-porcelain mb-1">
           {l.heading}
         </h1>
         <p className="text-sm font-mono text-porcelain/40">{l.subheading}</p>
       </div>
 
-      {/* Floating search widget */}
-      {/* Desktop (≥sm): draggable pill fixed to bottom-right unless dragged */}
-      {/* Mobile (<sm): fixed bubble + expandable input */}
-
-      {/* Desktop widget — hidden on mobile */}
-      <div
-        ref={widgetRef}
-        className="hidden sm:flex flex-col items-end gap-0 z-40"
-        style={
-          hasDragged
-            ? { position: 'fixed', bottom: 'auto', right: 'auto', willChange: 'left, top' }
-            : { position: 'fixed', top: 72, right: 32 }
-        }
-      >
-        {/* Drag handle bar + input row */}
-        <div
-          className={`
-            flex items-center gap-2.5 bg-[#1a1a1a]/97 backdrop-blur-md rounded-2xl overflow-hidden w-[min(448px,80vw)]
-            transition-[border-color,box-shadow] duration-300
-            ${
-              neonIntro
-                ? 'border border-[#39FF14] shadow-[0_0_18px_4px_rgba(57,255,20,0.55),0_12px_48px_rgba(0,0,0,0.75)] animate-neon-pulse'
-                : 'border border-white/15 shadow-[0_12px_48px_rgba(0,0,0,0.75)]'
-            }
-          `}
-          style={neonIntro ? { animation: 'neon-pulse 0.45s ease-in-out 4 alternate' } : undefined}
-        >
-          {/* Drag handle — only shown/active on ≥1366px */}
-          <button
-            onMouseDown={handleDragStart}
-            className="hidden [@media(min-width:1366px)]:flex items-center justify-center pl-4 pr-2 self-stretch shrink-0 cursor-grab active:cursor-grabbing text-porcelain/25 hover:text-porcelain/55 transition-colors"
-            aria-label="Move widget"
-            tabIndex={-1}
-          >
-            <GripHorizontal className="w-7 h-7" />
-          </button>
-          <Search className="w-5 h-5 text-porcelain/35 ml-3.5 [@media(min-width:1366px)]:ml-0 shrink-0" />
-          <input
-            ref={widgetInputRef}
-            type="text"
-            value={query}
-            onChange={e => startTransition(() => setQuery(e.target.value))}
-            placeholder={l.search}
-            className="w-full py-[17px] pr-3 bg-transparent text-[19px] text-porcelain placeholder:text-porcelain/25 focus:outline-none"
-          />
-          {query && (
-            <button
-              onClick={() => {
-                startTransition(() => setQuery(''))
-                widgetInputRef.current?.focus()
-              }}
-              className="mr-2 shrink-0 text-porcelain/30 hover:text-porcelain transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          )}
-          {query && (
-            <span className="mr-4 shrink-0 text-[15px] font-mono text-porcelain/40 whitespace-nowrap">
-              {filtered.length}
-            </span>
-          )}
-        </div>
-      </div>
-
-      {/* Mobile widget — bubble + expandable panel */}
-      <div className="sm:hidden fixed bottom-6 right-5 z-40 flex flex-col items-end gap-2">
-        {/* Expanded input — visible when open */}
-        <div
-          className={`
-            flex items-center gap-2 bg-[#1a1a1a]/97 backdrop-blur-md border border-white/15
-            shadow-[0_8px_32px_rgba(0,0,0,0.75)] rounded-2xl overflow-hidden
-            transition-all duration-300 ease-out origin-bottom-right
-            ${
-              widgetOpen
-                ? 'opacity-100 scale-100 w-[min(320px,78vw)] pointer-events-auto'
-                : 'opacity-0 scale-90 w-0 pointer-events-none'
-            }
-          `}
-        >
-          <Search className="w-5 h-5 text-porcelain/35 ml-3.5 shrink-0" />
+      {/* Filter bar */}
+      <div className="w-full px-4 md:px-[10%] pb-5 flex flex-col gap-4">
+        {/* Search input */}
+        <div className="relative max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-porcelain/35 pointer-events-none" />
           <input
             type="text"
             value={query}
             onChange={e => startTransition(() => setQuery(e.target.value))}
             placeholder={l.search}
-            className="w-full py-4 pr-3 bg-transparent text-[19px] text-porcelain placeholder:text-porcelain/25 focus:outline-none"
+            className="w-full pl-9 pr-9 py-2.5 bg-[#111] border border-white/10 rounded-xl text-[15px] text-porcelain placeholder:text-porcelain/25 focus:outline-none focus:border-white/30 transition-colors"
           />
           {query && (
             <button
               onClick={() => startTransition(() => setQuery(''))}
-              className="mr-2 shrink-0 text-porcelain/30 hover:text-porcelain transition-colors"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-porcelain/35 hover:text-porcelain transition-colors cursor-pointer"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
             </button>
-          )}
-          {query && (
-            <span className="mr-3.5 shrink-0 text-[15px] font-mono text-porcelain/40 whitespace-nowrap">
-              {filtered.length}
-            </span>
           )}
         </div>
 
-        {/* Bubble trigger */}
-        <button
-          onClick={() => setWidgetOpen(v => !v)}
-          aria-label={l.search}
-          className={`
-            relative w-16 h-16 rounded-full flex items-center justify-center
-            shadow-[0_6px_28px_rgba(0,0,0,0.65)] border transition-all duration-200 active:scale-95
-            ${
-              widgetOpen || query
-                ? 'bg-hunter-green border-hunter-green/60 text-porcelain'
-                : 'bg-[#1a1a1a]/97 border-white/15 text-porcelain/60 hover:text-porcelain hover:border-white/30'
-            }
-          `}
-        >
-          {widgetOpen && !query ? <X className="w-6 h-6" /> : <Search className="w-6 h-6" />}
-          {query && (
-            <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 text-[10px] font-mono font-bold text-white flex items-center justify-center">
-              {filtered.length > 99 ? '!' : filtered.length}
-            </span>
-          )}
-        </button>
+        {/* Type filter chips */}
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => setTypeFilter(null)}
+            className={`px-3 py-1.5 rounded-full border font-mono text-[11px] font-medium transition-all cursor-pointer ${
+              typeFilter === null
+                ? 'bg-porcelain/20 border-porcelain/40 text-porcelain'
+                : 'bg-white/5 border-white/10 text-porcelain/50 hover:border-white/20 hover:text-porcelain/70'
+            }`}
+          >
+            {l.typeAll}
+            <span className="ml-1.5 text-porcelain/30">{ingredients.length}</span>
+          </button>
+          {uniqueTypes.map(([type, count]) => {
+            const meta = getTypeMeta(type)
+            const Icon = meta.icon
+            const isActive = typeFilter === type
+            return (
+              <button
+                key={type}
+                onClick={() => setTypeFilter(isActive ? null : type)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border font-mono text-[11px] font-medium transition-all cursor-pointer ${
+                  isActive
+                    ? `${meta.bg} ${meta.border} ${meta.iconColor}`
+                    : 'bg-white/5 border-white/10 text-porcelain/50 hover:border-white/20 hover:text-porcelain/70'
+                }`}
+              >
+                <Icon className="w-3 h-3" />
+                {meta.label}
+                <span className="ml-0.5 text-porcelain/30">{count}</span>
+              </button>
+            )
+          })}
+        </div>
       </div>
 
-      {/* Ingredient grid */}
-      <div className="w-full px-[15%] py-6">
-        <p className="text-[13px] font-mono text-porcelain/30 mb-5 tracking-wide">
-          <span className="text-porcelain/55 font-semibold">{filtered.length}</span>
+      {/* Stats bar */}
+      <div className="w-full px-4 md:px-[10%] pb-3 flex items-center justify-between">
+        <p className="text-[13px] font-mono text-porcelain/30">
+          <span className="text-porcelain/55 font-semibold">{filteredAndSorted.length}</span>
           {' / '}
           {l.total(ingredients.length)}
           {selected.size > 0 && (
@@ -561,85 +495,123 @@ export function IngredientsExplorer({
             </span>
           )}
         </p>
-
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-3 sm:gap-4">
-          {filtered.map((ing, index) => {
-            const isSelected = selected.has(ing.id)
-            const displayName = getIngredientName(ing, locale)
-            const meta = getTypeMeta(ing.type)
-            const Icon = meta.icon
-
-            return (
-              <motion.button
-                key={ing.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.2, ease: 'easeOut', delay: Math.min(index * 0.008, 0.2) }}
-                onClick={() => toggle(ing.id)}
-                aria-pressed={isSelected}
-                className={`
-                  relative rounded-2xl p-4 flex flex-col items-center gap-3 border transition-all duration-200 text-center cursor-pointer
-                  ${
-                    isSelected
-                      ? 'bg-hunter-green/30 border-hunter-green/60 shadow-[0_0_20px_rgba(53,88,52,0.35)]'
-                      : 'bg-[#111] border-white/8 hover:border-white/20 hover:bg-white/5'
-                  }
-                `}
-              >
-                {/* Checkbox indicator — top-right */}
-                <span
-                  className={`
-                    absolute top-2.5 right-2.5 w-5 h-5 rounded-md border flex items-center justify-center transition-all duration-200
-                    ${
-                      isSelected
-                        ? 'bg-emerald-500 border-emerald-400'
-                        : 'bg-white/5 border-white/15'
-                    }
-                  `}
-                  aria-hidden="true"
-                >
-                  {isSelected && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
-                </span>
-
-                {/* Icon container */}
-                <div
-                  className={`w-12 h-12 rounded-xl flex items-center justify-center border ${meta.bg} ${meta.border}`}
-                >
-                  <Icon className={`w-6 h-6 ${meta.iconColor}`} aria-hidden="true" />
-                </div>
-
-                {/* Name */}
-                <span
-                  className={`text-[13px] font-medium leading-snug line-clamp-2 w-full ${isSelected ? 'text-porcelain' : 'text-porcelain/70'}`}
-                >
-                  {displayName}
-                </span>
-
-                {/* Type label */}
-                {ing.type && (
-                  <span
-                    className={`text-[10px] font-mono uppercase tracking-wider ${meta.iconColor} opacity-60`}
-                  >
-                    {meta.label}
-                  </span>
-                )}
-              </motion.button>
-            )
-          })}
-        </div>
-
-        {filtered.length === 0 && (
-          <p className="text-center font-mono text-porcelain/30 py-20 text-sm">{l.noResults}</p>
+        {selected.size > 0 && (
+          <button
+            onClick={() => setSelected(new Set())}
+            className="text-[12px] font-mono text-porcelain/40 hover:text-porcelain/70 transition-colors flex items-center gap-1 cursor-pointer"
+          >
+            <X className="w-3 h-3" />
+            {l.clearAll}
+          </button>
         )}
       </div>
 
-      {/* Sticky bottom CTA — visible when items selected */}
+      {/* Table */}
+      <div className="w-full px-4 md:px-[10%] pb-6">
+        <div className="rounded-2xl border border-white/8 overflow-hidden">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-white/8 bg-[#0f0f0f]">
+                <th className="w-12 px-4 py-3">
+                  <button
+                    onClick={toggleSelectAll}
+                    className={`flex items-center justify-center w-5 h-5 rounded-md border transition-all cursor-pointer ${
+                      allVisibleSelected
+                        ? 'bg-emerald-500 border-emerald-400'
+                        : 'bg-white/5 border-white/20 hover:bg-white/10'
+                    }`}
+                    aria-label={l.selectAll}
+                  >
+                    {allVisibleSelected && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
+                  </button>
+                </th>
+                <th className="px-4 py-3 text-left">
+                  <button
+                    onClick={() => toggleSort('name')}
+                    className="flex items-center gap-1.5 text-[11px] font-mono font-semibold uppercase tracking-widest text-porcelain/45 hover:text-porcelain/70 transition-colors cursor-pointer"
+                  >
+                    {l.colName}
+                    <SortIcon col="name" sortKey={sortKey} sortDir={sortDir} />
+                  </button>
+                </th>
+                <th className="px-4 py-3 text-left hidden sm:table-cell">
+                  <button
+                    onClick={() => toggleSort('type')}
+                    className="flex items-center gap-1.5 text-[11px] font-mono font-semibold uppercase tracking-widest text-porcelain/45 hover:text-porcelain/70 transition-colors cursor-pointer"
+                  >
+                    {l.colType}
+                    <SortIcon col="type" sortKey={sortKey} sortDir={sortDir} />
+                  </button>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredAndSorted.map(ing => {
+                const isSelected = selected.has(ing.id)
+                const displayName = getIngredientName(ing, locale)
+                const meta = getTypeMeta(ing.type)
+                const Icon = meta.icon
+
+                return (
+                  <tr
+                    key={ing.id}
+                    onClick={() => toggle(ing.id)}
+                    className={`border-b border-white/5 cursor-pointer transition-colors last:border-0 ${
+                      isSelected
+                        ? 'bg-hunter-green/20 hover:bg-hunter-green/25'
+                        : 'hover:bg-white/4'
+                    }`}
+                  >
+                    <td className="w-12 px-4 py-3.5">
+                      <span
+                        className={`flex items-center justify-center w-5 h-5 rounded-md border transition-all ${
+                          isSelected
+                            ? 'bg-emerald-500 border-emerald-400'
+                            : 'bg-white/5 border-white/15'
+                        }`}
+                        aria-hidden="true"
+                      >
+                        {isSelected && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3.5">
+                      <span
+                        className={`text-[14px] font-medium ${isSelected ? 'text-porcelain' : 'text-porcelain/75'}`}
+                      >
+                        {displayName}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3.5 hidden sm:table-cell">
+                      {ing.type && (
+                        <span
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-mono border ${meta.bg} ${meta.border} ${meta.iconColor}`}
+                        >
+                          <Icon className="w-3 h-3" aria-hidden />
+                          {meta.label}
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+
+          {filteredAndSorted.length === 0 && (
+            <p className="text-center font-mono text-porcelain/30 py-16 text-sm">
+              {l.noIngredients}
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* Sticky bottom CTA */}
       {selected.size > 0 && (
         <div className="fixed bottom-0 left-0 right-0 z-40 px-4 pb-safe-bottom">
           <div className="max-w-lg mx-auto pb-4">
             <button
               onClick={findDrinks}
-              className="w-full flex items-center justify-center gap-3 px-6 py-4 rounded-2xl bg-gradient-to-r from-hunter-green to-evergreen hover:from-hunter-green/90 hover:to-evergreen/90 text-porcelain text-[16px] font-bold transition-all shadow-[0_8px_32px_rgba(0,0,0,0.6)] border border-white/10 active:scale-[0.98]"
+              className="w-full flex items-center justify-center gap-3 px-6 py-4 rounded-2xl bg-gradient-to-r from-hunter-green to-evergreen hover:from-hunter-green/90 hover:to-evergreen/90 text-porcelain text-[16px] font-bold transition-all shadow-[0_8px_32px_rgba(0,0,0,0.6)] border border-white/10 active:scale-[0.98] cursor-pointer"
             >
               <Search className="w-5 h-5" />
               {l.find}
@@ -651,10 +623,9 @@ export function IngredientsExplorer({
         </div>
       )}
 
-      {/* Bottom padding so last cards aren't hidden by CTA */}
       {selected.size > 0 && <div className="h-24" />}
 
-      {/* Modal */}
+      {/* Results modal */}
       {modalOpen && (
         <div
           className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/75 backdrop-blur-sm p-0 sm:p-6"
@@ -665,12 +636,10 @@ export function IngredientsExplorer({
             className="bg-[#111] border border-white/10 rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:w-[70vw] sm:max-w-4xl max-h-[85vh] flex flex-col"
             onClick={e => e.stopPropagation()}
           >
-            {/* Drag handle on mobile */}
             <div className="pt-3 flex justify-center sm:hidden">
               <div className="w-10 h-1 rounded-full bg-white/15" />
             </div>
 
-            {/* Modal header */}
             <div className="flex items-center justify-between px-5 pt-4 pb-4 border-b border-white/8">
               <div>
                 <h2 className="text-lg font-serif font-bold text-porcelain">{l.modalTitle}</h2>
@@ -684,7 +653,7 @@ export function IngredientsExplorer({
                 {!loading && results.length > 0 && (
                   <button
                     onClick={printList}
-                    className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/6 hover:bg-white/12 border border-white/10 text-porcelain/60 hover:text-porcelain text-[13px] font-mono font-medium transition-colors"
+                    className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/6 hover:bg-white/12 border border-white/10 text-porcelain/60 hover:text-porcelain text-[13px] font-mono font-medium transition-colors cursor-pointer"
                     title={
                       locale === 'pt'
                         ? 'Imprimir lista'
@@ -701,7 +670,7 @@ export function IngredientsExplorer({
                 )}
                 <button
                   onClick={() => setModalOpen(false)}
-                  className="w-8 h-8 flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/10 text-porcelain/50 hover:text-porcelain transition-colors"
+                  className="w-8 h-8 flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/10 text-porcelain/50 hover:text-porcelain transition-colors cursor-pointer"
                   aria-label={l.close}
                 >
                   <X className="w-4 h-4" />
@@ -709,7 +678,6 @@ export function IngredientsExplorer({
               </div>
             </div>
 
-            {/* Modal body */}
             <div className="overflow-y-auto flex-1 px-5 py-4">
               {loading && (
                 <div className="flex items-center justify-center py-16">
@@ -756,7 +724,6 @@ export function IngredientsExplorer({
                             {drink.matchCount}/{drink.totalIngredients}
                           </p>
                         </div>
-                        {/* QR Code inline */}
                         <div className="shrink-0 flex flex-col items-center gap-0.5">
                           <QRCodeSVG
                             value={drinkUrl}

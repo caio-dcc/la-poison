@@ -673,7 +673,7 @@ export function ChatbotInterface({
               value={option}
               className="cursor-pointer bg-[#0a0a0a] py-2 text-base text-porcelain"
             >
-              {info.option}
+              {info.name}
             </option>
           )
         })}
@@ -791,6 +791,16 @@ export function ChatbotInterface({
               </div>
 
               <div className="border-t border-porcelain/10 bg-black/45 p-3 sm:p-4">
+                {/* Mobile settings panel — slides in above the form */}
+                <div
+                  className={cn(
+                    'md:hidden overflow-hidden transition-all duration-300 ease-out',
+                    showMobileSettings ? 'max-h-[500px] opacity-100 mb-3' : 'max-h-0 opacity-0'
+                  )}
+                >
+                  {settingsPanel('mobile')}
+                </div>
+
                 {queriesRemaining !== -1 && (
                   <p className="mb-3 text-xs text-porcelain/55">
                     {queriesRemaining} {dict.chatbotQueriesRemaining}
@@ -799,7 +809,8 @@ export function ChatbotInterface({
 
                 <form
                   onSubmit={handleSubmit}
-                  className="rounded-2xl border border-porcelain/15 bg-black/60 shadow-xl backdrop-blur-md"
+                  onClick={() => textareaRef.current?.focus()}
+                  className="cursor-text rounded-2xl border border-porcelain/15 bg-black/60 shadow-xl backdrop-blur-md"
                 >
                   <Textarea
                     ref={textareaRef}
@@ -815,12 +826,35 @@ export function ChatbotInterface({
                     style={{ overflow: 'hidden', fontSize: `${messageFontSize}px` }}
                   />
 
-                  <div className="flex items-center justify-end px-3 pb-3">
+                  <div className="flex items-center justify-between px-3 pb-3">
+                    {/* Settings toggle — mobile only, inline in form row */}
+                    <button
+                      type="button"
+                      onClick={e => {
+                        e.stopPropagation()
+                        setShowMobileSettings(open => !open)
+                      }}
+                      className={cn(
+                        'md:hidden flex h-9 w-9 cursor-pointer items-center justify-center rounded-xl border transition-colors',
+                        showMobileSettings
+                          ? 'border-hunter-green/60 bg-hunter-green text-porcelain'
+                          : 'border-porcelain/15 bg-black/45 text-porcelain/60 hover:border-porcelain/25 hover:text-porcelain'
+                      )}
+                      aria-label={settingsLabel.trigger}
+                      aria-expanded={showMobileSettings}
+                    >
+                      {showMobileSettings ? (
+                        <X className="h-4 w-4" aria-hidden="true" />
+                      ) : (
+                        <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
+                      )}
+                    </button>
                     <Button
                       type="submit"
                       size="icon"
                       disabled={isLoading || !input.trim()}
-                      className="h-11 w-11 rounded-xl border border-porcelain/10 bg-hunter-green text-porcelain hover:bg-evergreen"
+                      onClick={e => e.stopPropagation()}
+                      className="h-11 w-11 cursor-pointer rounded-xl border border-porcelain/10 bg-hunter-green text-porcelain hover:bg-evergreen"
                       aria-label={
                         locale === 'pt'
                           ? 'Enviar mensagem'
@@ -836,38 +870,6 @@ export function ChatbotInterface({
               </div>
             </div>
           </div>
-        </div>
-
-        <div className="fixed bottom-24 right-5 z-40 flex flex-col items-end gap-2 md:hidden">
-          <div
-            className={cn(
-              'origin-bottom-right transition-all duration-300 ease-out',
-              showMobileSettings
-                ? 'pointer-events-auto scale-100 opacity-100'
-                : 'pointer-events-none scale-90 opacity-0'
-            )}
-          >
-            {settingsPanel('mobile')}
-          </div>
-
-          <button
-            type="button"
-            onClick={() => setShowMobileSettings(open => !open)}
-            aria-label={settingsLabel.trigger}
-            aria-expanded={showMobileSettings}
-            className={cn(
-              'relative flex h-16 w-16 cursor-pointer items-center justify-center rounded-full border shadow-[0_6px_28px_rgba(0,0,0,0.65)] transition-all duration-200 active:scale-95',
-              showMobileSettings
-                ? 'border-hunter-green/60 bg-hunter-green text-porcelain'
-                : 'border-white/15 bg-[#1a1a1a]/97 text-porcelain/60 hover:border-white/30 hover:text-porcelain'
-            )}
-          >
-            {showMobileSettings ? (
-              <X className="h-6 w-6" aria-hidden="true" />
-            ) : (
-              <SlidersHorizontal className="h-6 w-6" aria-hidden="true" />
-            )}
-          </button>
         </div>
       </section>
 

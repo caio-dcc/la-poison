@@ -41,7 +41,7 @@ function validatePhone(phone: string, countryCode: string): { valid: boolean; er
   return { valid: true }
 }
 
-export default function SignupForm() {
+export default function SignupForm({ isTabbed = false }: { isTabbed?: boolean }) {
   const { dict } = useLanguage()
 
   const [email, setEmail] = useState('')
@@ -137,39 +137,52 @@ export default function SignupForm() {
   }
 
   if (confirmationSent) {
+    const containerClass = isTabbed ? 'w-full' : 'max-w-md w-full mx-auto'
+    const boxClass = isTabbed
+      ? 'bg-transparent text-center'
+      : 'bg-white rounded-xl shadow-md p-8 text-center'
+
     return (
-      <div className="max-w-md w-full mx-auto">
-        <div className="bg-white rounded-xl shadow-md p-8 text-center">
+      <div className={containerClass}>
+        <div className={boxClass}>
           <h1 className="text-2xl font-bold text-evergreen mb-4">{dict.checkEmail}</h1>
           <p className="text-shadow-grey mb-6">
             Verifique seu email em <strong>{email}</strong> para confirmar sua conta.
           </p>
-          <Link
-            href="/pt/login"
-            className="inline-block text-evergreen hover:text-hunter-green font-semibold transition-colors cursor-pointer"
-          >
-            ← Voltar para Login
-          </Link>
+          {!isTabbed && (
+            <Link
+              href="/pt/login"
+              className="inline-block text-evergreen hover:text-hunter-green font-semibold transition-colors cursor-pointer"
+            >
+              ← Voltar para Login
+            </Link>
+          )}
         </div>
       </div>
     )
   }
 
   const phoneValidation = validatePhone(phone, country)
+  const containerClass = isTabbed ? 'w-full' : 'max-w-2xl w-full mx-auto'
+  const boxClass = isTabbed ? 'bg-transparent' : 'bg-white rounded-xl shadow-md p-8'
 
   return (
-    <div className="max-w-2xl w-full mx-auto">
-      <div className="bg-white rounded-xl shadow-md p-8">
-        <h1 className="text-2xl font-bold text-evergreen mb-2">Criar Conta</h1>
-        <p className="text-sm text-shadow-grey mb-8">
-          Já tem conta?{' '}
-          <Link
-            href="/pt/login"
-            className="text-evergreen hover:text-hunter-green font-semibold transition-colors cursor-pointer"
-          >
-            Faça login
-          </Link>
-        </p>
+    <div className={containerClass}>
+      <div className={boxClass}>
+        {!isTabbed && (
+          <>
+            <h1 className="text-2xl font-bold text-evergreen mb-2">Criar Conta</h1>
+            <p className="text-sm text-shadow-grey mb-8">
+              Já tem conta?{' '}
+              <Link
+                href="/pt/login"
+                className="text-evergreen hover:text-hunter-green font-semibold transition-colors cursor-pointer"
+              >
+                Faça login
+              </Link>
+            </p>
+          </>
+        )}
 
         {error && (
           <div className="mb-6 p-3 bg-red-50 border border-red-200 rounded-lg">

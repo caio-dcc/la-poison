@@ -31,12 +31,17 @@ export function LanguageSelector({ currentLocale }: { currentLocale: string }) {
         id="desktop-language-selector"
         value={currentLocale}
         onChange={event => router.push(getLocaleUrl(event.target.value))}
-        className="h-10 w-40 cursor-pointer rounded-lg border border-porcelain/20 bg-black/40 px-3 text-sm font-semibold text-porcelain transition-colors hover:border-porcelain/35 focus:border-porcelain/50 focus:outline-none focus:ring-2 focus:ring-porcelain/15"
+        className="h-10 w-36 cursor-pointer rounded-lg border border-porcelain/20 bg-black/40 px-3 text-sm font-semibold text-porcelain transition-colors hover:border-porcelain/35 focus:border-porcelain/50 focus:outline-none focus:ring-2 focus:ring-porcelain/15 text-center"
+        style={{ textAlignLast: 'center' }}
         aria-label="Idioma"
       >
         {languages.map(lang => (
-          <option key={lang.code} value={lang.code} className="cursor-pointer">
-            {lang.flag} {lang.label}
+          <option
+            key={lang.code}
+            value={lang.code}
+            className="cursor-pointer text-center bg-[#0a0a0a]"
+          >
+            {lang.flag} - {lang.label}
           </option>
         ))}
       </select>
